@@ -286,7 +286,6 @@ class Tree
         $id = $this->node((int)$id);
         $parent = $this->node((int)$parent);
         $position = min((int)$position, $parent->getChildrenCount());
-        $old_nodes = $id->descendants();
 
         $tmp = [];
         $tmp[] = $id->id;
@@ -385,7 +384,7 @@ class Tree
             }
             $this->db->commit($trans);
             return $iid;
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $this->db->rollback($trans);
             throw $e;
         }
@@ -434,11 +433,12 @@ class Tree
                 $this->db->query($v, $par[$k]);
             }
             $this->db->commit($trans);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $this->db->rollback($trans);
             throw $e;
         }
     }
+    /*
     public function analyze()
     {
         $report = [];
@@ -690,4 +690,5 @@ class Tree
         }
         return true;
     }
+    */
 }
