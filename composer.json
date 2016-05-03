@@ -1,0 +1,48 @@
+{
+    "name": "vakata/phptree",
+    "description": "A collection of PHP classes for storing a tree in a relational database",
+    "keywords": [
+        "vakata",
+        "tree"
+    ],
+    "homepage": "https://github.com/vakata/phptree",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "vakata",
+            "email": "github@vakata.com",
+            "homepage": "http://www.vakata.com",
+            "role": "Developer"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/vakata/phpdoc-md"
+        }
+    ],
+    "require": {
+        "php" : ">=5.4.0",
+        "vakata/database" : "^1.0.0",
+    },
+    "require-dev": {
+        "phpunit/phpunit" : "4.*",
+        "codeclimate/php-test-reporter": "dev-master",
+        "clean/phpdoc-md": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+            "vakata\\phptree\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "vakata\\phptree\\test\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "psr2": "php-cs-fixer fix ./src",
+        "phpdoc": "phpdoc-md"
+    }
+}

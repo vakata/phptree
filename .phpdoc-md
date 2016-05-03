@@ -1,0 +1,10 @@
+<?php
+return (object)[
+    'rootNamespace' => 'vakata\phptree',
+    'destDirectory' => 'docs',
+    'format' => 'github',
+    'classes' => [
+        '\\vakata\\phptree\\Tree',
+        '\\vakata\\phptree\\Node'
+    ],
+];
