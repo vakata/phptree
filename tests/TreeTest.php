@@ -39,7 +39,7 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 	 * @depends testConstruct
 	 */
 	public function testEmptyTree() {
-		$this->assertEquals([], self::$tree->roots());
+		$this->assertEquals([], self::$tree->getRoot()->getChildren());
 	}
 	/**
 	 * @depends testConstruct
@@ -59,7 +59,7 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function testCreateLeft() {
 		self::$tree->create(1, 0);
-		$this->assertEquals(2, count(self::$tree->roots()));
+		$this->assertEquals(2, count(self::$tree->getRoot()->getChildren()));
 		$this->assertEquals([], $this->analyze());
 	}
 	/**
@@ -67,7 +67,7 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function testCreateRight() {
 		self::$tree->create(1);
-		$this->assertEquals(3, count(self::$tree->roots()));
+		$this->assertEquals(3, count(self::$tree->getRoot()->getChildren()));
 		$this->assertEquals([], $this->analyze());
 	}
 	/**
@@ -160,7 +160,7 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals([], $this->analyze());
 		self::$tree->remove(4);
 		$this->assertEquals([], $this->analyze());
-		$this->assertEquals([], self::$tree->roots());
+		$this->assertEquals([], self::$tree->getRoot()->getChildren());
 	}
 
 	public function analyze()
