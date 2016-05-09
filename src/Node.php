@@ -32,7 +32,7 @@ class Node
     }
     public function moveTo(Node $parent, $index = 0)
     {
-        $this->tree->move($this->$id, $parent->getID(), $index);
+        $this->tree->move($this->id, $parent->getID(), $index);
         return $this->tree->node($this->id);
     }
     public function moveAfter(Node $reference)
