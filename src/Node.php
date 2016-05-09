@@ -64,7 +64,7 @@ class Node
     {
         $this->tree->remove($this->id);
     }
-    public function empty()
+    public function removeChildren()
     {
         foreach ($this->getChildren() as $node) {
             $node->remove();
