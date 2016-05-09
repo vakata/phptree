@@ -8,7 +8,7 @@ class Tree
 {
     protected $db = null;
     protected $tb = '';
-    protected $root = 0;
+    protected $root = 1;
     protected $fields = [
         'id'            => 'id',
         'left'          => 'lft',
@@ -23,27 +23,20 @@ class Tree
     {
         $this->db = $db;
         $this->tb = $tb;
-        $this->root = $root;
         $this->fields = array_merge($this->fields, $fields);
         $this->select = [];
         foreach ($this->fields as $k => $v) {
             $this->select[] = $v . ' AS s_' . $k;
         }
         $this->select = implode(',', $this->select);
+        $this->root = $this->node($root);
     }
 
-    public function roots()
+    public function getRoot()
     {
-        return $this->children($this->root);
+        return $this->root;
     }
-    public function root($index)
-    {
-        $children = $this->roots();
-        if (!isset($children[$index])) {
-            throw new TreeException('Invalid root index');
-        }
-        return $children[$index];
-    }
+
     public function node($id)
     {
         $temp = $this->db->one(
@@ -98,7 +91,7 @@ class Tree
 
     public function create($parent = null, $position = null)
     {
-        $parent = $this->node($parent === null ? $this->root : (int)$parent);
+        $parent = $parent === null ? $this->root : $this->node((int)$parent);
         $position = $position === null ? $parent->getChildrenCount() : min((int)$position, $parent->getChildrenCount());
 
         $sql = array();
