@@ -19,7 +19,7 @@ class Tree
     ];
     protected $select = '';
 
-    public function __construct(DatabaseInterface $db, $tb, $root = 0, array $fields = [])
+    public function __construct(DatabaseInterface $db, $tb, $root = 1, array $fields = [])
     {
         $this->db = $db;
         $this->tb = $tb;
@@ -27,7 +27,7 @@ class Tree
         $this->fields = array_merge($this->fields, $fields);
         $this->select = [];
         foreach ($this->fields as $k => $v) {
-            $this->select[] = $v . ' AS ' . $k;
+            $this->select[] = $v . ' AS s_' . $k;
         }
         $this->select = implode(',', $this->select);
     }
@@ -36,6 +36,14 @@ class Tree
     {
         return $this->children($this->root);
     }
+    public function root($index)
+    {
+        $children = $this->roots();
+        if (!isset($children[$index])) {
+            throw new TreeException('Invalid root index');
+        }
+        return $children[$index];
+    }
     public function node($id)
     {
         $temp = $this->db->one(
@@ -43,7 +51,7 @@ class Tree
             $id
         );
         if ($temp === null) {
-            throw new Exception('Invalid node ID');
+            throw new TreeException('Invalid node ID');
         }
         return new Node($this, $temp);
     }
@@ -81,17 +89,17 @@ class Tree
              WHERE {$this->fields['left']} > ? AND {$this->fields['right']} < ?
             " . ($lvl ? " AND level <= ?" : "") . "
              ORDER BY {$this->fields['left']} ASC",
-            $lvl ? [ $lft, $rgt ] : [ $lft, $rgt, $lvl]
+            $lvl ? [ $lft, $rgt, $lvl ] : [ $lft, $rgt ]
         ) as $data) {
             $temp[] = new Node($this, $data);
         }
         return $temp;
     }
 
-    public function create($parent, $position = 0)
+    public function create($parent = null, $position = null)
     {
-        $parent = $this->node((int)$parent);
-        $position = min((int)$position, $parent->getChildrenCount());
+        $parent = $this->node($parent === null ? $this->root : (int)$parent);
+        $position = $position === null ? $parent->getChildrenCount() : min((int)$position, $parent->getChildrenCount());
 
         $sql = array();
         $par = array();
@@ -106,7 +114,7 @@ class Tree
         $par[] = [ $parent->id, $position ];
 
         // update left indexes
-        $left = $position >= $parent->getChildrenCount() ? $parent->right : $parent->getChild($position)->left;
+        $left = ($position >= $parent->getChildrenCount() ? $parent->right : $parent->getChild($position)->left);
         $sql[] = "UPDATE {$this->tb} 
                   SET 
                     {$this->fields['left']} = {$this->fields['left']} + 2
@@ -115,7 +123,7 @@ class Tree
         $par[] = [ $left ];
 
         // update right indexes
-        $right = $position >= $parent->getChildrenCount() ? $parent->right : $parent->getChild($position)->left + 1;
+        $right = ($position >= $parent->getChildrenCount() ? $parent->right : $parent->getChild($position)->left + 1);
         $sql[] = "UPDATE {$this->tb} 
                   SET 
                     {$this->fields['right']} = {$this->fields['right']} + 2
@@ -161,16 +169,16 @@ class Tree
             }
             $this->db->commit($trans);
             return (int)$last;
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $this->db->rollback($trans);
             throw $e;
         }
     }
-    public function move($id, $parent, $position = 0)
+    public function move($id, $parent, $position = null)
     {
         $id = $this->node((int)$id);
         $parent = $this->node((int)$parent);
-        $position = min((int)$position, $parent->getChildrenCount());
+        $position = $position === null ? $parent->getChildrenCount() : min((int)$position, $parent->getChildrenCount());
         if ($id->parent == $parent->id && (int)$position > $id->position) {
             $position ++;
         }
@@ -182,7 +190,7 @@ class Tree
 
         $tmp = [];
         $tmp[] = $id->id;
-        foreach ($id->descendants() as $node) {
+        foreach ($id->getDescendants() as $node) {
             $tmp[] = (int)$node->id;
         }
         $width = (int)$id->right - (int)$id->left + 1;
@@ -217,7 +225,7 @@ class Tree
                     {$this->fields['right']} = {$this->fields['right']} + ? 
                   WHERE
                     {$this->fields['right']} >= ? AND 
-                    {$this->fields['id']} NOT IN (".implode(',',$tmp).")";
+                    {$this->fields['id']} NOT IN (".implode(',', $tmp).")";
         $par[] = [ $width, $right ];
 
         // move the node and children - left, right and level
@@ -231,7 +239,7 @@ class Tree
                     {$this->fields['right']} = {$this->fields['right']} + ?, 
                     {$this->fields['left']} = {$this->fields['left']} + ?, 
                     {$this->fields['level']} = {$this->fields['level']} + ? 
-                  WHERE {$this->fields['id']} IN (".implode(',',$tmp).") ";
+                  WHERE {$this->fields['id']} IN (".implode(',', $tmp).") ";
         $par[] = [ $diff, $diff, $ldiff ];
 
         // move the node and children - position and parent
@@ -258,7 +266,7 @@ class Tree
                     {$this->fields['left']} = {$this->fields['left']} - ? 
                   WHERE 
                     {$this->fields['left']} > ? AND 
-                    {$this->fields['id']} NOT IN (".implode(',',$tmp).")";
+                    {$this->fields['id']} NOT IN (".implode(',', $tmp).")";
         $par[] = [ $width, $id->right ];
 
         // clean old parent - right indexes
@@ -267,7 +275,7 @@ class Tree
                     {$this->fields['right']} = {$this->fields['right']} - ? 
                   WHERE 
                     {$this->fields['right']} > ? AND 
-                    {$this->fields['id']} NOT IN (".implode(',',$tmp).")";
+                    {$this->fields['id']} NOT IN (".implode(',', $tmp).")";
         $par[] = [ $width, $id->right ];
 
         $trans = $this->db->begin();
@@ -276,20 +284,20 @@ class Tree
                 $this->db->query($v, $par[$k]);
             }
             $this->db->commit($trans);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $this->db->rollback($trans);
             throw $e;
         }
     }
-    public function copy($id, $parent, $position = 0)
+    public function copy($id, $parent, $position = null)
     {
         $id = $this->node((int)$id);
         $parent = $this->node((int)$parent);
-        $position = min((int)$position, $parent->getChildrenCount());
+        $position = $position === null ? $parent->getChildrenCount() : min((int)$position, $parent->getChildrenCount());
 
         $tmp = [];
         $tmp[] = $id->id;
-        foreach ($id->descendants() as $node) {
+        foreach ($id->getDescendants() as $node) {
             $tmp[] = (int)$node->id;
         }
         $width = (int)$id->right - (int)$id->left + 1;
@@ -337,8 +345,8 @@ class Tree
         $fields[$this->fields["left"]] = $this->fields["left"]." + ? ";
         $fields[$this->fields["right"]] = $this->fields["right"]." + ? ";
         $fields[$this->fields["level"]] = $this->fields["level"]." + ? ";
-        $sql[] = "INSERT INTO {$this->tb} (".implode(',',array_keys($fields)).") 
-                  SELECT ".implode(',',array_values($fields))." FROM {$this->tb} 
+        $sql[] = "INSERT INTO {$this->tb} (".implode(',', array_keys($fields)).") 
+                  SELECT ".implode(',', array_values($fields))." FROM {$this->tb} 
                   WHERE {$this->fields['id']} IN (".implode(",", $tmp).")
                     ORDER BY {$this->fields['level']} ASC";
         $par[] = [ $diff, $diff, $ldiff ];

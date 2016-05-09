@@ -9,12 +9,15 @@ class Node
 
     public function __construct(Tree $tree, array $data)
     {
-        $this->data = $data;
         $this->tree = $tree;
+        $this->data = $data;
+        foreach ($this->data as $f => $v) {
+            $this->data[preg_replace('(^s_)', '', $f)] = $v;
+        }
     }
     public function __get($k)
     {
-        return isset($data[$k]) ? $data[$k] : null;
+        return isset($this->data[$k]) ? $this->data[$k] : null;
     }
 
     public function addChild($index = 0)
@@ -84,7 +87,7 @@ class Node
     {
         $children = $this->getChildren();
         if (!isset($children[$index])) {
-            throw new Exception('Invalid child index');
+            throw new TreeException('Invalid child index');
         }
         return $children[$index];
     }
