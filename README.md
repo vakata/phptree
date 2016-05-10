@@ -6,7 +6,21 @@
 [![Code Climate][ico-cc]][link-cc]
 [![Tests Coverage][ico-cc-coverage]][link-cc]
 
-Storing trees in a relational database.
+Storing trees in a relational database. Keep in mind the tree needs to have a single root, so it is probably safe to begin with this structure (this example is mySQL, but it should be clear):
+```sql
+CREATE TABLE IF NOT EXISTS struct (
+    `id`  int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `lft` int(10) unsigned NOT NULL,
+    `rgt` int(10) unsigned NOT NULL,
+    `lvl` int(10) unsigned NOT NULL,
+    `pid` int(10) unsigned NOT NULL,
+    `pos` int(10) unsigned NOT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+INSERT INTO struct VALUES (1, 1, 2, 0, 0, 0);
+
+# now you can use 1 as your tree root
+```
 
 ## Install
 
@@ -18,7 +32,27 @@ $ composer require vakata/phptree
 
 ## Usage
 
-``` php
+```php
+// create an instance
+$dbc = new \vakata\database\DB("mysqli://root@127.0.0.1/treedb");
+$tree = new \vakata\phptree\Tree($dbc, 'tree_table');
+
+// WORKING WITH IDS
+$new1 = $tree->create(); // create a new node in the root
+$new2 = $tree->create(2); // create a new node in another node by ID
+$tree->move($new1, $new2); // move nodes by ID
+$copied = $tree->copy($new1, $new2); // copy nodes by ID
+$tree->remove($new2); // remove a node
+$node = $tree->node($copied); // get a node by ID
+
+// WORKING WITH NODES
+$tree->getRoot()->getChildren(); // get all children of the root
+
+$child1 = $tree->getRoot()->addChild(); // create a node
+$child2 = $tree->getRoot()->addChild();
+$child1->moveTo($child2, 0); // move a node
+$child3 = $child2->copyTo($tree->getRoot(), 0); // copy a node
+$child3->remove(); // remove a node
 ```
 
 Read more in the [API docs](docs/README.md)

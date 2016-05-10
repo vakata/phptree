@@ -134,7 +134,7 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 	 * @depends testDeepCreate
 	 */
 	public function testCopyLeft() {
-		$id = self::$tree->copy(40, 1, 0);
+		$id = self::$tree->copy(20, 1, 0);
 		$this->assertEquals([], $this->analyze());
 		self::$tree->remove($id);
 		$this->assertEquals([], $this->analyze());
@@ -166,12 +166,12 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 	public function analyze()
 	{
 		$report = [];
-		//if ((int)self::$db->one("SELECT COUNT(id) AS res FROM struct WHERE pid = 0") !== 1) {
-		//	$report[] = "No or more than one root node.";
-		//}
-		//if ((int)self::$db->one("SELECT lft AS res FROM struct WHERE pid = 0") !== 1) {
-		//	$report[] = "Root node's left index is not 1.";
-		//}
+		if ((int)self::$db->one("SELECT COUNT(id) AS res FROM struct WHERE pid = 0") !== 1) {
+			$report[] = "No or more than one root node.";
+		}
+		if ((int)self::$db->one("SELECT lft AS res FROM struct WHERE pid = 0") !== 1) {
+			$report[] = "Root node's left index is not 1.";
+		}
 		if ((int)self::$db->one("
 			SELECT
 				COUNT(id) AS res

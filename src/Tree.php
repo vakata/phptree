@@ -4,6 +4,9 @@ namespace vakata\phptree;
 
 use vakata\database\DatabaseInterface;
 
+/**
+ * This class maintains a tree structure in a database using both the adjacency and nested set models.
+ */
 class Tree
 {
     protected $db = null;
@@ -19,6 +22,14 @@ class Tree
     ];
     protected $select = '';
 
+    /**
+     * Create an instance
+     * @method __construct
+     * @param  DatabaseInterface $db     A database connection instance
+     * @param  string            $tb     the table name where the tree will be stored
+     * @param  integer           $root   the root of the tree (defaults to `1`)
+     * @param  array             $fields a map containing the column names for: id, left, right, level, parent, position
+     */
     public function __construct(DatabaseInterface $db, $tb, $root = 1, array $fields = [])
     {
         $this->db = $db;
@@ -31,12 +42,21 @@ class Tree
         $this->select = implode(',', $this->select);
         $this->root = $this->node($root);
     }
-
+    /**
+     * Get the root node
+     * @method getRoot
+     * @return vakata\phptree\Node  the root node object
+     */
     public function getRoot()
     {
         return $this->root;
     }
-
+    /**
+     * Get a node by its ID - used internally
+     * @method node
+     * @param  integer $id the node id
+     * @return vakata\phptree\Node     the node object
+     */
     public function node($id)
     {
         $temp = $this->db->one(
@@ -48,6 +68,13 @@ class Tree
         }
         return new Node($this, $temp);
     }
+    /**
+     * Get all parents by left / right indexes. Used internally.
+     * @method parents
+     * @param  integer  $lft the left index
+     * @param  integer  $rgt the right index
+     * @return array         an array of all parent `vakata\phptree\Node` objects
+     */
     public function parents($lft, $rgt)
     {
         $temp = [];
@@ -61,6 +88,12 @@ class Tree
         }
         return $temp;
     }
+    /**
+     * Get a list of children by ID. Used internally
+     * @method children
+     * @param  integer   $id the ID
+     * @return array         an array of children `vakata\phptree\Node` objects
+     */
     public function children($id)
     {
         $temp = [];
@@ -74,6 +107,14 @@ class Tree
         }
         return $temp;
     }
+    /**
+     * Get all descendants by left, right indexes and optional depth. Used internally.
+     * @method descendants
+     * @param  integer      $lft the left index
+     * @param  integer      $rgt the right index
+     * @param  integer|null $lvl the max depth to include, optional - defaults to `null`
+     * @return array             an array of descendant `vakata\phptree\Node` objects
+     */
     public function descendants($lft, $rgt, $lvl = null)
     {
         $temp = [];
@@ -89,6 +130,13 @@ class Tree
         return $temp;
     }
 
+    /**
+     * Create a new node.
+     * @method create
+     * @param  integer|null $parent   the parent to create in, `null` means create in the root node
+     * @param  integer|null $position the position to create at, `null` means as last child
+     * @return integer                the ID of the created node
+     */
     public function create($parent = null, $position = null)
     {
         $parent = $parent === null ? $this->root : $this->node((int)$parent);
@@ -167,6 +215,13 @@ class Tree
             throw $e;
         }
     }
+    /**
+     * Move a node to another place in the tree.
+     * @method move
+     * @param  integer $id       the ID of the node to move
+     * @param  integer $parent   the new parent ID
+     * @param  integer|null $position the position to move to, defaults to `null`, which means move as last child
+     */
     public function move($id, $parent, $position = null)
     {
         $id = $this->node((int)$id);
@@ -282,6 +337,13 @@ class Tree
             throw $e;
         }
     }
+    /**
+     * Copy a node to another place in the tree.
+     * @method copy
+     * @param  integer $id       the ID of the node to copy
+     * @param  integer $parent   the new parent ID
+     * @param  integer|null $position the position to copy to, defaults to `null`, which means copy as last child
+     */
     public function copy($id, $parent, $position = null)
     {
         $id = $this->node((int)$id);
@@ -390,6 +452,11 @@ class Tree
             throw $e;
         }
     }
+    /**
+     * Remove a node by ID.
+     * @method remove
+     * @param  integer $id the ID of the node to remove
+     */
     public function remove($id)
     {
         $id = $this->node($id);

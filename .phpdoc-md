@@ -5,6 +5,7 @@ return (object)[
     'format' => 'github',
     'classes' => [
         '\\vakata\\phptree\\Tree',
+        '\\vakata\\phptree\\TreeException',
         '\\vakata\\phptree\\Node'
     ],
 ];
