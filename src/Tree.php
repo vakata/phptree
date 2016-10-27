@@ -24,7 +24,6 @@ class Tree
 
     /**
      * Create an instance
-     * @method __construct
      * @param  DatabaseInterface $db     A database connection instance
      * @param  string            $tb     the table name where the tree will be stored
      * @param  integer           $root   the root of the tree (defaults to `1`)
@@ -44,7 +43,6 @@ class Tree
     }
     /**
      * Get the root node
-     * @method getRoot
      * @return vakata\phptree\Node  the root node object
      */
     public function getRoot()
@@ -53,7 +51,6 @@ class Tree
     }
     /**
      * Get a node by its ID - used internally
-     * @method node
      * @param  integer $id the node id
      * @return vakata\phptree\Node     the node object
      */
@@ -70,7 +67,6 @@ class Tree
     }
     /**
      * Get all parents by left / right indexes. Used internally.
-     * @method parents
      * @param  integer  $lft the left index
      * @param  integer  $rgt the right index
      * @return array         an array of all parent `vakata\phptree\Node` objects
@@ -90,7 +86,6 @@ class Tree
     }
     /**
      * Get a list of children by ID. Used internally
-     * @method children
      * @param  integer   $id the ID
      * @return array         an array of children `vakata\phptree\Node` objects
      */
@@ -109,7 +104,6 @@ class Tree
     }
     /**
      * Get all descendants by left, right indexes and optional depth. Used internally.
-     * @method descendants
      * @param  integer      $lft the left index
      * @param  integer      $rgt the right index
      * @param  integer|null $lvl the max depth to include, optional - defaults to `null`
@@ -132,7 +126,6 @@ class Tree
 
     /**
      * Create a new node.
-     * @method create
      * @param  integer|null $parent   the parent to create in, `null` means create in the root node
      * @param  integer|null $position the position to create at, `null` means as last child
      * @return integer                the ID of the created node
@@ -217,7 +210,6 @@ class Tree
     }
     /**
      * Move a node to another place in the tree.
-     * @method move
      * @param  integer $id       the ID of the node to move
      * @param  integer $parent   the new parent ID
      * @param  integer|null $position the position to move to, defaults to `null`, which means move as last child
@@ -339,7 +331,6 @@ class Tree
     }
     /**
      * Copy a node to another place in the tree.
-     * @method copy
      * @param  integer $id       the ID of the node to copy
      * @param  integer $parent   the new parent ID
      * @param  integer|null $position the position to copy to, defaults to `null`, which means copy as last child
@@ -454,7 +445,6 @@ class Tree
     }
     /**
      * Remove a node by ID.
-     * @method remove
      * @param  integer $id the ID of the node to remove
      */
     public function remove($id)

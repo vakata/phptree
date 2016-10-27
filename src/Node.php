@@ -12,7 +12,6 @@ class Node
 
     /**
      * Create an instance.
-     * @method __construct
      * @param  vakata\phptree\Tree  $tree the parent tree instance
      * @param  array                $data the node data
      */
@@ -30,7 +29,6 @@ class Node
     }
     /**
      * Create a new child.
-     * @method addChild
      * @param  integer|null  $index the index to create at, defaults to `null`, meaning create as last child.
      * @return vakata\phptree\Node  the newly created node
      */
@@ -41,7 +39,6 @@ class Node
     }
     /**
      * Remove a child.
-     * @method removeChild
      * @param  integer      $index the index of the child to remove
      */
     public function removeChild($index)
@@ -50,7 +47,6 @@ class Node
     }
     /**
      * Move to a new parent.
-     * @method moveTo
      * @param  vakata\phptree\Node  $parent the new parent
      * @param  integer|null         $index  the new position to move to, defaults to `null`, meaning as the last child
      * @return self
@@ -62,7 +58,6 @@ class Node
     }
     /**
      * Move to a new location, as a sibling of node.
-     * @method moveAfter
      * @param  vakata\phptree\Node  $reference the node to move next to
      * @return self
      */
@@ -73,7 +68,6 @@ class Node
     }
     /**
      * Move to a new location, as a sibling of node.
-     * @method moveBefore
      * @param  vakata\phptree\Node  $reference the node to move next to
      * @return self
      */
@@ -84,7 +78,6 @@ class Node
     }
     /**
      * Copy the current node to a new location.
-     * @method copyTo
      * @param  vakata\phptree\Node  $parent the new parent
      * @param  integer|null         $index  the new position to copy to, defaults to `null`, meaning as the last child
      * @return vakata\phptree\Node  the newly create node
@@ -96,7 +89,6 @@ class Node
     }
     /**
      * Copy the current node to a new location, as a sibling of given node.
-     * @method copyAfter
      * @param  vakata\phptree\Node  $reference the reference node
      * @return vakata\phptree\Node  the newly create node
      */
@@ -107,7 +99,6 @@ class Node
     }
     /**
      * Copy the current node to a new location, as a sibling of given node.
-     * @method copyBefore
      * @param  vakata\phptree\Node  $reference the reference node
      * @return vakata\phptree\Node  the newly create node
      */
@@ -118,7 +109,6 @@ class Node
     }
     /**
      * Remove the current node
-     * @method remove
      */
     public function remove()
     {
@@ -126,7 +116,6 @@ class Node
     }
     /**
      * Remove all the children of the current node.
-     * @method removeChildren
      * @return self
      */
     public function removeChildren()
@@ -138,7 +127,6 @@ class Node
     }
     /**
      * Is the node a leaf node.
-     * @method isLeaf
      * @return boolean is the node a leaf
      */
     public function isLeaf()
@@ -147,7 +135,6 @@ class Node
     }
     /**
      * Does the node have children.
-     * @method hasChildren
      * @return boolean     does the node have children
      */
     public function hasChildren()
@@ -156,7 +143,6 @@ class Node
     }
     /**
      * Get all children.
-     * @method getChildren
      * @return array      an array of `\vakata\phptree\Node` objects
      */
     public function getChildren()
@@ -165,7 +151,6 @@ class Node
     }
     /**
      * Get a specific child by its index.
-     * @method getChild
      * @param  integer   $index the child's index
      * @return \vakata\phptree\Node          the child
      */
@@ -179,7 +164,6 @@ class Node
     }
     /**
      * Get the parent of the node.
-     * @method getParent
      * @return \vakata\phptree\Node    the parent node
      */
     public function getParent()
@@ -188,7 +172,6 @@ class Node
     }
     /**
      * Get the node's position index.
-     * @method getIndex
      * @return integer   the position of the node among its siblings
      */
     public function getIndex()
@@ -197,7 +180,6 @@ class Node
     }
     /**
      * Get the ID.
-     * @method getID
      * @return integer the node ID
      */
     public function getID()
@@ -206,7 +188,6 @@ class Node
     }
     /**
      * Get the children count.
-     * @method getChildrenCount
      * @return integer           the children count
      */
     public function getChildrenCount()
@@ -215,7 +196,6 @@ class Node
     }
     /**
      * Get all descendants up to an optional depth
-     * @method getDescendants
      * @param  integer|null  $depth optional max depth (counting from the current node) to include
      * @return array                an array of `\vakata\phptree\Node` objects
      */
@@ -225,7 +205,6 @@ class Node
     }
     /**
      * Get the count of all descendants
-     * @method getDescendantsCount
      * @return integer              the descendant count
      */
     public function getDescendantsCount()
@@ -234,7 +213,6 @@ class Node
     }
     /**
      * Get all parents
-     * @method getParents
      * @return array     an array of `\vakata\phptree\Node` objects
      */
     public function getParents()
@@ -243,7 +221,6 @@ class Node
     }
     /**
      * Is the node descendant of another node
-     * @method isDescendantOf
      * @param  Node           $node the node to check against
      * @return boolean              is the node a descendant
      */
@@ -258,7 +235,6 @@ class Node
     }
     /**
      * Is the node child of another node
-     * @method isChildOf
      * @param  Node           $node the node to check against
      * @return boolean              is the node a child
      */
@@ -268,7 +244,6 @@ class Node
     }
     /**
      * Is the node the parent of another node
-     * @method isParentOf
      * @param  Node           $node the node to check against
      * @return boolean              is the node the parent
      */
@@ -278,7 +253,6 @@ class Node
     }
     /**
      * Is the node an ancestor of another node
-     * @method isAncestorOf
      * @param  Node           $node the node to check against
      * @return boolean              is the node an ancestor
      */
