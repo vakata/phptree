@@ -9,9 +9,10 @@ use vakata\database\DatabaseInterface;
  */
 class Tree
 {
-    protected $db = null;
-    protected $tb = '';
-    protected $root = 1;
+    protected $db;
+    protected $tb;
+    protected $root;
+    protected $select = '';
     protected $fields = [
         'id'            => 'id',
         'left'          => 'lft',
@@ -20,7 +21,6 @@ class Tree
         'parent'        => 'pid',
         'position'      => 'pos'
     ];
-    protected $select = '';
 
     /**
      * Create an instance
@@ -34,16 +34,16 @@ class Tree
         $this->db = $db;
         $this->tb = $tb;
         $this->fields = array_merge($this->fields, $fields);
-        $this->select = [];
+        $temp = [];
         foreach ($this->fields as $k => $v) {
-            $this->select[] = $v . ' AS s_' . $k;
+            $temp[] = $v . ' AS s_' . $k;
         }
-        $this->select = implode(',', $this->select);
+        $this->select = implode(',', $temp);
         $this->root = $this->node($root);
     }
     /**
      * Get the root node
-     * @return vakata\phptree\Node  the root node object
+     * @return \vakata\phptree\Node  the root node object
      */
     public function getRoot()
     {
@@ -52,7 +52,7 @@ class Tree
     /**
      * Get a node by its ID - used internally
      * @param  integer $id the node id
-     * @return vakata\phptree\Node     the node object
+     * @return \vakata\phptree\Node     the node object
      */
     public function node($id)
     {

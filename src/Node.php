@@ -63,7 +63,7 @@ class Node
      */
     public function moveAfter(Node $reference)
     {
-        $this->tree->move($this->id, $reference->getParent(), $reference->getIndex() + 1);
+        $this->tree->move($this->id, $reference->getParent()->getID(), $reference->getIndex() + 1);
         return $this->tree->node($this->id);
     }
     /**
@@ -73,7 +73,7 @@ class Node
      */
     public function moveBefore(Node $reference)
     {
-        $this->tree->move($this->id, $reference->getParent(), $reference->getIndex());
+        $this->tree->move($this->id, $reference->getParent()->getID(), $reference->getIndex());
         return $this->tree->node($this->id);
     }
     /**
@@ -94,7 +94,7 @@ class Node
      */
     public function copyAfter(Node $reference)
     {
-        $id = $this->tree->copy($this->id, $reference->getParent(), $reference->getIndex() + 1);
+        $id = $this->tree->copy($this->id, $reference->getParent()->getID(), $reference->getIndex() + 1);
         return $this->tree->node($id);
     }
     /**
@@ -104,7 +104,7 @@ class Node
      */
     public function copyBefore(Node $reference)
     {
-        $id = $this->tree->copy($this->id, $reference->getParent(), $reference->getIndex());
+        $id = $this->tree->copy($this->id, $reference->getParent()->getID(), $reference->getIndex());
         return $this->tree->node($id);
     }
     /**
