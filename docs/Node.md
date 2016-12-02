@@ -6,8 +6,10 @@ This class represents a single node in the structure. Instances are usually crea
 | Name | Description |
 |------|-------------|
 |[__construct](#vakata\phptree\node__construct)|Create an instance.|
+|[getIndex](#vakata\phptree\nodegetindex)|Get the index of the node (among its siblings)|
 |[addChild](#vakata\phptree\nodeaddchild)|Create a new child.|
 |[removeChild](#vakata\phptree\noderemovechild)|Remove a child.|
+|[removeChildren](#vakata\phptree\noderemovechildren)|Remove all the children of the current node.|
 |[moveTo](#vakata\phptree\nodemoveto)|Move to a new parent.|
 |[moveAfter](#vakata\phptree\nodemoveafter)|Move to a new location, as a sibling of node.|
 |[moveBefore](#vakata\phptree\nodemovebefore)|Move to a new location, as a sibling of node.|
@@ -15,22 +17,17 @@ This class represents a single node in the structure. Instances are usually crea
 |[copyAfter](#vakata\phptree\nodecopyafter)|Copy the current node to a new location, as a sibling of given node.|
 |[copyBefore](#vakata\phptree\nodecopybefore)|Copy the current node to a new location, as a sibling of given node.|
 |[remove](#vakata\phptree\noderemove)|Remove the current node|
-|[removeChildren](#vakata\phptree\noderemovechildren)|Remove all the children of the current node.|
-|[isLeaf](#vakata\phptree\nodeisleaf)|Is the node a leaf node.|
+|[hasParent](#vakata\phptree\nodehasparent)|Does the node have a parent.|
 |[hasChildren](#vakata\phptree\nodehaschildren)|Does the node have children.|
-|[getChildren](#vakata\phptree\nodegetchildren)|Get all children.|
-|[getChild](#vakata\phptree\nodegetchild)|Get a specific child by its index.|
-|[getParent](#vakata\phptree\nodegetparent)|Get the parent of the node.|
-|[getIndex](#vakata\phptree\nodegetindex)|Get the node's position index.|
-|[getID](#vakata\phptree\nodegetid)|Get the ID.|
-|[getChildrenCount](#vakata\phptree\nodegetchildrencount)|Get the children count.|
-|[getDescendants](#vakata\phptree\nodegetdescendants)|Get all descendants up to an optional depth|
-|[getDescendantsCount](#vakata\phptree\nodegetdescendantscount)|Get the count of all descendants|
-|[getParents](#vakata\phptree\nodegetparents)|Get all parents|
-|[isDescendantOf](#vakata\phptree\nodeisdescendantof)|Is the node descendant of another node|
-|[isChildOf](#vakata\phptree\nodeischildof)|Is the node child of another node|
+|[isLeaf](#vakata\phptree\nodeisleaf)|Is the node a leaf node.|
+|[getChildren](#vakata\phptree\nodegetchildren)|Get all children|
+|[getParent](#vakata\phptree\nodegetparent)|Get all parents|
+|[isChildOf](#vakata\phptree\nodeischildof)|Is the node a child of another node|
 |[isParentOf](#vakata\phptree\nodeisparentof)|Is the node the parent of another node|
-|[isAncestorOf](#vakata\phptree\nodeisancestorof)|Is the node an ancestor of another node|
+|[getAncestors](#vakata\phptree\nodegetancestors)|Get all node's ancestors|
+|[getDescendants](#vakata\phptree\nodegetdescendants)|Get all of the node's descendants|
+|[isDescendantOf](#vakata\phptree\nodeisdescendantof)|Is the node descendant of another node|
+|[isAncestorOf](#vakata\phptree\nodeisancestorof)|Is the node the parent of another node|
 
 ---
 
@@ -42,15 +39,31 @@ Create an instance.
 
 ```php
 public function __construct (  
-    \vakata\phptree\Tree $tree,  
-    array $data  
+    array $data,  
+    \vakata\phptree\Node $parent  
 )   
 ```
 
 |  | Type | Description |
 |-----|-----|-----|
-| `$tree` | `\vakata\phptree\Tree` | the parent tree instance |
-| `$data` | `array` | the node data |
+| `$data` | `array` | the node data (optional) |
+| `$parent` | `\vakata\phptree\Node` | the parent of the node |
+
+---
+
+
+### vakata\phptree\Node::getIndex
+Get the index of the node (among its siblings)  
+
+
+```php
+public function getIndex () : integer    
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+|  |  |  |
+| `return` | `integer` | the index |
 
 ---
 
@@ -61,15 +74,17 @@ Create a new child.
 
 ```php
 public function addChild (  
+    \vakata\phptree\Node $node,  
     integer|null $index  
-) : \vakata\phptree\Node    
+) : self    
 ```
 
 |  | Type | Description |
 |-----|-----|-----|
+| `$node` | `\vakata\phptree\Node` | the child to add |
 | `$index` | `integer`, `null` | the index to create at, defaults to `null`, meaning create as last child. |
 |  |  |  |
-| `return` | [`\vakata\phptree\Node`](Node.md) | the newly created node |
+| `return` | `self` |  |
 
 ---
 
@@ -80,13 +95,31 @@ Remove a child.
 
 ```php
 public function removeChild (  
-    integer $index  
-)   
+    \vakata\phptree\Node $node  
+) : self    
 ```
 
 |  | Type | Description |
 |-----|-----|-----|
-| `$index` | `integer` | the index of the child to remove |
+| `$node` | `\vakata\phptree\Node` | the child to remove |
+|  |  |  |
+| `return` | `self` |  |
+
+---
+
+
+### vakata\phptree\Node::removeChildren
+Remove all the children of the current node.  
+
+
+```php
+public function removeChildren () : self    
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+|  |  |  |
+| `return` | `self` |  |
 
 ---
 
@@ -166,7 +199,7 @@ public function copyTo (
 | `$parent` | `\vakata\phptree\Node` | the new parent |
 | `$index` | `integer`, `null` | the new position to copy to, defaults to `null`, meaning as the last child |
 |  |  |  |
-| `return` | [`\vakata\phptree\Node`](Node.md) | the newly create node |
+| `return` | [`\vakata\phptree\Node`](Node.md) | the copied node |
 
 ---
 
@@ -185,7 +218,7 @@ public function copyAfter (
 |-----|-----|-----|
 | `$reference` | `\vakata\phptree\Node` | the reference node |
 |  |  |  |
-| `return` | [`\vakata\phptree\Node`](Node.md) | the newly create node |
+| `return` | [`\vakata\phptree\Node`](Node.md) | the copied node |
 
 ---
 
@@ -204,7 +237,7 @@ public function copyBefore (
 |-----|-----|-----|
 | `$reference` | `\vakata\phptree\Node` | the reference node |
 |  |  |  |
-| `return` | [`\vakata\phptree\Node`](Node.md) | the newly create node |
+| `return` | [`\vakata\phptree\Node`](Node.md) | the copied node |
 
 ---
 
@@ -221,34 +254,18 @@ public function remove ()
 ---
 
 
-### vakata\phptree\Node::removeChildren
-Remove all the children of the current node.  
+### vakata\phptree\Node::hasParent
+Does the node have a parent.  
 
 
 ```php
-public function removeChildren () : self    
+public function hasParent () : boolean    
 ```
 
 |  | Type | Description |
 |-----|-----|-----|
 |  |  |  |
-| `return` | `self` |  |
-
----
-
-
-### vakata\phptree\Node::isLeaf
-Is the node a leaf node.  
-
-
-```php
-public function isLeaf () : boolean    
-```
-
-|  | Type | Description |
-|-----|-----|-----|
-|  |  |  |
-| `return` | `boolean` | is the node a leaf |
+| `return` | `boolean` | does the node have a parent |
 
 ---
 
@@ -269,8 +286,24 @@ public function hasChildren () : boolean
 ---
 
 
+### vakata\phptree\Node::isLeaf
+Is the node a leaf node.  
+
+
+```php
+public function isLeaf () : boolean    
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+|  |  |  |
+| `return` | `boolean` | is the node a leaf |
+
+---
+
+
 ### vakata\phptree\Node::getChildren
-Get all children.  
+Get all children  
 
 
 ```php
@@ -285,130 +318,82 @@ public function getChildren () : array
 ---
 
 
-### vakata\phptree\Node::getChild
-Get a specific child by its index.  
-
-
-```php
-public function getChild (  
-    integer $index  
-) : \vakata\phptree\Node    
-```
-
-|  | Type | Description |
-|-----|-----|-----|
-| `$index` | `integer` | the child's index |
-|  |  |  |
-| `return` | [`\vakata\phptree\Node`](Node.md) | the child |
-
----
-
-
 ### vakata\phptree\Node::getParent
-Get the parent of the node.  
+Get all parents  
 
 
 ```php
-public function getParent () : \vakata\phptree\Node    
+public function getParent () : array    
 ```
 
 |  | Type | Description |
 |-----|-----|-----|
-|  |  |  |
-| `return` | [`\vakata\phptree\Node`](Node.md) | the parent node |
-
----
-
-
-### vakata\phptree\Node::getIndex
-Get the node's position index.  
-
-
-```php
-public function getIndex () : integer    
-```
-
-|  | Type | Description |
-|-----|-----|-----|
-|  |  |  |
-| `return` | `integer` | the position of the node among its siblings |
-
----
-
-
-### vakata\phptree\Node::getID
-Get the ID.  
-
-
-```php
-public function getID () : integer    
-```
-
-|  | Type | Description |
-|-----|-----|-----|
-|  |  |  |
-| `return` | `integer` | the node ID |
-
----
-
-
-### vakata\phptree\Node::getChildrenCount
-Get the children count.  
-
-
-```php
-public function getChildrenCount () : integer    
-```
-
-|  | Type | Description |
-|-----|-----|-----|
-|  |  |  |
-| `return` | `integer` | the children count |
-
----
-
-
-### vakata\phptree\Node::getDescendants
-Get all descendants up to an optional depth  
-
-
-```php
-public function getDescendants (  
-    integer|null $depth  
-) : array    
-```
-
-|  | Type | Description |
-|-----|-----|-----|
-| `$depth` | `integer`, `null` | optional max depth (counting from the current node) to include |
 |  |  |  |
 | `return` | `array` | an array of `\vakata\phptree\Node` objects |
 
 ---
 
 
-### vakata\phptree\Node::getDescendantsCount
-Get the count of all descendants  
+### vakata\phptree\Node::isChildOf
+Is the node a child of another node  
 
 
 ```php
-public function getDescendantsCount () : integer    
+public function isChildOf (  
+    \Node $node  
+) : boolean    
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+| `$node` | `\Node` | the node to check against |
+|  |  |  |
+| `return` | `boolean` | is the node the parent |
+
+---
+
+
+### vakata\phptree\Node::isParentOf
+Is the node the parent of another node  
+
+
+```php
+public function isParentOf (  
+    \Node $node  
+) : boolean    
+```
+
+|  | Type | Description |
+|-----|-----|-----|
+| `$node` | `\Node` | the node to check against |
+|  |  |  |
+| `return` | `boolean` | is the node the parent |
+
+---
+
+
+### vakata\phptree\Node::getAncestors
+Get all node's ancestors  
+
+
+```php
+public function getAncestors () : array    
 ```
 
 |  | Type | Description |
 |-----|-----|-----|
 |  |  |  |
-| `return` | `integer` | the descendant count |
+| `return` | `array` | an array of `\vakata\phptree\Node` objects |
 
 ---
 
 
-### vakata\phptree\Node::getParents
-Get all parents  
+### vakata\phptree\Node::getDescendants
+Get all of the node's descendants  
 
 
 ```php
-public function getParents () : array    
+public function getDescendants () : array    
 ```
 
 |  | Type | Description |
@@ -438,46 +423,8 @@ public function isDescendantOf (
 ---
 
 
-### vakata\phptree\Node::isChildOf
-Is the node child of another node  
-
-
-```php
-public function isChildOf (  
-    \Node $node  
-) : boolean    
-```
-
-|  | Type | Description |
-|-----|-----|-----|
-| `$node` | `\Node` | the node to check against |
-|  |  |  |
-| `return` | `boolean` | is the node a child |
-
----
-
-
-### vakata\phptree\Node::isParentOf
-Is the node the parent of another node  
-
-
-```php
-public function isParentOf (  
-    \Node $node  
-) : boolean    
-```
-
-|  | Type | Description |
-|-----|-----|-----|
-| `$node` | `\Node` | the node to check against |
-|  |  |  |
-| `return` | `boolean` | is the node the parent |
-
----
-
-
 ### vakata\phptree\Node::isAncestorOf
-Is the node an ancestor of another node  
+Is the node the parent of another node  
 
 
 ```php
@@ -490,7 +437,7 @@ public function isAncestorOf (
 |-----|-----|-----|
 | `$node` | `\Node` | the node to check against |
 |  |  |  |
-| `return` | `boolean` | is the node an ancestor |
+| `return` | `boolean` | is the node the parent |
 
 ---
 
