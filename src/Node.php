@@ -60,10 +60,22 @@ class Node
         }
         return $root;
     }
+    public static function copy(Node $original)
+    {
+        $node = clone $original;
+        $node->copied = $original;
+        $node->parent = null;
+        $node->children = array_map(function ($v) use ($node) {
+            $v = Node::copy($v);
+            $v->parent = $node;
+            return $v;
+        }, $node->children);
+        return $node;
+    }
 
     protected $data = [];
     protected $parent = null;
-    protected $copied = false;
+    protected $copied = null;
     protected $children = [];
 
     /**
@@ -74,12 +86,6 @@ class Node
     public function __construct(array $data = [])
     {
         $this->data = $data;
-    }
-    public function __clone()
-    {
-        $this->parent = null;
-        $this->copied = true;
-        $this->children = array_map(function ($v) { $v = clone $v; $v->parent = $this; return $v; }, $this->children);
     }
     public function __get($k)
     {
@@ -190,7 +196,7 @@ class Node
      */
     public function copyTo(Node $parent, $index = null)
     {
-        $copy = clone $this;
+        $copy = Node::copy($this);
         $copy->moveTo($parent, $index);
         return $copy;
     }
@@ -201,7 +207,7 @@ class Node
      */
     public function copyAfter(Node $reference)
     {
-        $copy = clone $this;
+        $copy = Node::copy($this);
         $copy->moveAfter($reference);
         return $copy;
     }
@@ -212,7 +218,7 @@ class Node
      */
     public function copyBefore(Node $reference)
     {
-        $copy = clone $this;
+        $copy = Node::copy($this);
         $copy->moveBefore($reference);
         return $copy;
     }
@@ -336,6 +342,10 @@ class Node
         return $node->isDescendantOf($this);
     }
     public function isCopy()
+    {
+        return $this->copied !== null;
+    }
+    public function getOriginal()
     {
         return $this->copied;
     }

@@ -80,6 +80,7 @@ class Tree
             $struct = [];
             foreach ($this->fields as $k => $v) {
                 $struct[$v] = $node['struct'][$k];
+                $node['node']->{$v} = $node['struct'][$k];
             }
             if ($node['struct']['id'] && !$node['node']->isCopy()) {
                 $cur[$node['struct']['id']] = array_merge(
@@ -130,6 +131,7 @@ class Tree
             $par[] = $k;
             $this->db->query("UPDATE {$this->tb} SET {$sql} WHERE {$this->fields['id']} = ?", $par);
         }
+        $add = [];
         foreach ($new as $k => $v) {
             $fields = [];
             foreach ($v['data'] as $kk => $vv) {
@@ -140,9 +142,12 @@ class Tree
                     $v['node']->getParent()->{$this->fields['id']} :
                     $vv;
             }
-            $v['node']->{$this->fields['id']} = $this->db->table($this->tb)->insert($fields)[$this->fields['id']];
+            $id = $this->db->table($this->tb)->insert($fields)[$this->fields['id']];
+            $v['node']->{$this->fields['id']} = $id;
+            $add[] = $id;
         }
         $this->db->commit($trans);
-        $this->load();
+        //$this->load();
+        return [ 'created' => $add, 'changed' => array_keys($mod), 'removed' => $rem ];
     }
 }
