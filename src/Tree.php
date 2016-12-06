@@ -30,16 +30,25 @@ class Tree
     }
     public function load()
     {
+        $dat = array_map(
+            function ($v) {
+                foreach ($this->fields as $kk => $vv) {
+                    $v[$vv] = $kk == 'parent' && $v[$vv] == null ? null : (int)$v[$vv]; 
+                }
+                return $v;
+            },
+            $this->db->all("SELECT * FROM {$this->tb}")
+        ); 
         if (isset($this->fields['id']) && isset($this->fields['parent'])) {
             $this->root = Node::fromAdjacencyArray(
-                $this->db->all("SELECT * FROM {$this->tb}"),
+                $dat,
                 $this->fields['id'],
                 $this->fields['parent'],
                 $this->fields['position'] ?? null
             );
         } else {
             $this->root = Node::fromNestedSetArray(
-                $this->db->all("SELECT * FROM {$this->tb}"),
+                $dat,
                 $this->fields['id'],
                 $this->fields['left'],
                 $this->fields['right']
@@ -56,10 +65,10 @@ class Tree
     }
     /**
      * Get a node by its ID - used internally
-     * @param  mixed $id the node id
+     * @param  int $id the node id
      * @return \vakata\phptree\Node     the node object
      */
-    public function getNode($id)
+    public function getNode(int $id)
     {
         $field = $this->fields['id'];
         if ($this->root->{$field} === $id) {
@@ -98,6 +107,7 @@ class Tree
             }
         }
         foreach ($this->db->get("SELECT * FROM {$this->tb}", null, $this->fields['id']) as $k => $v) {
+            $k = (int)$k;
             if (!isset($cur[$k])) {
                 $rem[] = $k;
             } else {
@@ -143,7 +153,7 @@ class Tree
                     $vv;
             }
             $id = $this->db->table($this->tb)->insert($fields)[$this->fields['id']];
-            $v['node']->{$this->fields['id']} = $id;
+            $v['node']->{$this->fields['id']} = (int)$id;
             $add[] = $id;
         }
         $this->db->commit($trans);
