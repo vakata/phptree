@@ -2,7 +2,7 @@
 
 namespace vakata\phptree;
 
-use vakata\database\DatabaseInterface;
+use vakata\database\DBInterface;
 
 /**
  * This class maintains a tree structure in a database using both the adjacency and nested set models.
@@ -16,12 +16,12 @@ class Tree
 
     /**
      * Create an instance
-     * @param  DatabaseInterface $db     A database connection instance
+     * @param  DBInterface $db     A database connection instance
      * @param  string            $tb     the table name where the tree will be stored
      * @param  integer           $root   the root of the tree (defaults to `1`)
      * @param  array             $fields a map containing the column names for: id, left, right, level, parent, position
      */
-    public function __construct(DatabaseInterface $db, $tb, array $fields = [])
+    public function __construct(DBInterface $db, $tb, array $fields = [])
     {
         $this->db = $db;
         $this->tb = $tb;
