@@ -33,7 +33,9 @@ class Tree
         $dat = array_map(
             function ($v) {
                 foreach ($this->fields as $kk => $vv) {
-                    $v[$vv] = $kk == 'parent' && $v[$vv] == null ? null : (int)$v[$vv]; 
+                    $v[$vv] = ($kk == 'parent' && $v[$vv] == null) ?
+                        null :
+                        (in_array($kk, ['id','left','right','level','parent','position']) ? (int)$v[$vv] : $v[$vv]); 
                 }
                 return $v;
             },
@@ -88,8 +90,10 @@ class Tree
         foreach ($this->root->export(1, $this->fields['id']) as $node) {
             $struct = [];
             foreach ($this->fields as $k => $v) {
-                $struct[$v] = $node['struct'][$k];
-                $node['node']->{$v} = $node['struct'][$k];
+                if (in_array($k, ['id','left','right','level','parent','position'])) {
+                    $struct[$v] = $node['struct'][$k];
+                    $node['node']->{$v} = $node['struct'][$k];
+                }
             }
             if ($node['struct']['id'] && !$node['node']->isCopy()) {
                 $cur[$node['struct']['id']] = array_merge(
