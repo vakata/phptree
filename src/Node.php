@@ -81,7 +81,7 @@ class Node
     /**
      * Create an instance.
      * @param  array                $data   the node data (optional)
-     * @param  vakata\phptree\Node  $parent the parent of the node
+     * @param  \vakata\phptree\Node  $parent the parent of the node
      */
     public function __construct(array $data = [])
     {
@@ -108,7 +108,7 @@ class Node
     }
     /**
      * Create a new child.
-     * @param  vakata\phptree\Node  $node the child to add
+     * @param  \vakata\phptree\Node  $node the child to add
      * @param  integer|null  $index the index to create at, defaults to `null`, meaning create as last child.
      * @return self
      */
@@ -126,7 +126,7 @@ class Node
     }
     /**
      * Remove a child.
-     * @param  vakata\phptree\Node  $node the child to remove
+     * @param  \vakata\phptree\Node  $node the child to remove
      * @return self
      */
     public function removeChild(Node $child)
@@ -153,7 +153,7 @@ class Node
     }
     /**
      * Move to a new parent.
-     * @param  vakata\phptree\Node  $parent the new parent
+     * @param  \vakata\phptree\Node  $parent the new parent
      * @param  integer|null         $index  the new position to move to, defaults to `null`, meaning as the last child
      * @return self
      */
@@ -164,7 +164,7 @@ class Node
     }
     /**
      * Move to a new location, as a sibling of node.
-     * @param  vakata\phptree\Node  $reference the node to move next to
+     * @param  \vakata\phptree\Node  $reference the node to move next to
      * @return self
      */
     public function moveAfter(Node $reference)
@@ -177,7 +177,7 @@ class Node
     }
     /**
      * Move to a new location, as a sibling of node.
-     * @param  vakata\phptree\Node  $reference the node to move next to
+     * @param  \vakata\phptree\Node  $reference the node to move next to
      * @return self
      */
     public function moveBefore(Node $reference)
@@ -190,9 +190,9 @@ class Node
     }
     /**
      * Copy the current node to a new location.
-     * @param  vakata\phptree\Node  $parent the new parent
+     * @param  \vakata\phptree\Node  $parent the new parent
      * @param  integer|null         $index  the new position to copy to, defaults to `null`, meaning as the last child
-     * @return vakata\phptree\Node  the copied node
+     * @return \vakata\phptree\Node  the copied node
      */
     public function copyTo(Node $parent, $index = null)
     {
@@ -202,8 +202,8 @@ class Node
     }
     /**
      * Copy the current node to a new location, as a sibling of given node.
-     * @param  vakata\phptree\Node  $reference the reference node
-     * @return vakata\phptree\Node  the copied node
+     * @param  \vakata\phptree\Node  $reference the reference node
+     * @return \vakata\phptree\Node  the copied node
      */
     public function copyAfter(Node $reference)
     {
@@ -213,8 +213,8 @@ class Node
     }
     /**
      * Copy the current node to a new location, as a sibling of given node.
-     * @param  vakata\phptree\Node  $reference the reference node
-     * @return vakata\phptree\Node  the copied node
+     * @param  \vakata\phptree\Node  $reference the reference node
+     * @return \vakata\phptree\Node  the copied node
      */
     public function copyBefore(Node $reference)
     {

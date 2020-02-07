@@ -59,7 +59,7 @@ class Tree
     }
     /**
      * Get the root node
-     * @return \vakata\phptree\Node  the root node object
+     * @return \\vakata\phptree\Node  the root node object
      */
     public function getRoot()
     {
@@ -68,7 +68,7 @@ class Tree
     /**
      * Get a node by its ID - used internally
      * @param  int $id the node id
-     * @return \vakata\phptree\Node     the node object
+     * @return \\vakata\phptree\Node     the node object
      */
     public function getNode(int $id)
     {
