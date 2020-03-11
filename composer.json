@@ -5,6 +5,14 @@
         "vakata",
         "tree"
     ],
+    "config" : {
+        "platform" : {
+            "php" : "7.2"
+        },
+        "optimize-autoloader" : true,
+        "sort-packages" : true,
+        "bin-compat": "full"
+    },
     "homepage": "https://github.com/vakata/phptree",
     "license": "MIT",
     "authors": [
@@ -25,8 +33,7 @@
         "vakata/database" : "^3.0.0"
     },
     "require-dev": {
-        "phpunit/phpunit" : "4.*",
-        "clean/phpdoc-md": "dev-master"
+        "phpunit/phpunit" : "4.*"
     },
     "autoload": {
         "psr-4": {
@@ -39,8 +46,6 @@
         }
     },
     "scripts": {
-        "test": "phpunit",
-        "psr2": "php-cs-fixer fix ./src",
-        "phpdoc": "phpdoc-md"
+        "test": "phpunit"
     }
 }
