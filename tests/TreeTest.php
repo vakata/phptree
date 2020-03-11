@@ -25,7 +25,7 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 		self::$db->query("INSERT INTO struct VALUES (1, 1, 2, 0, 0, 0)");
 	}
 	public static function tearDownAfterClass() {
-		//self::$db->query("DROP TABLE struct");
+		self::$db->query("DROP TABLE struct");
 	}
 	protected function setUp() {
 		// self::$db->query("TRUNCATE TABLE test;");
