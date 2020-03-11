@@ -11,8 +11,9 @@ class Node
         array $nodes = [],
         string $id = 'id',
         string $parent = 'parent',
-        string $position = null
-    )
+        string $position = null,
+        int $rootID = null
+    ): Node
     {
         $nodes = array_values($nodes);
         usort($nodes, function ($a, $b) use ($parent, $position) {
@@ -26,11 +27,18 @@ class Node
             $temp[$node[$id]] = new Node($node);
         }
         foreach ($nodes as $node) {
-            if (!isset($node[$parent]) || !isset($temp[$node[$parent]])) {
+            if (isset($rootID) && $node[$id] === $rootID) {
+                $root = $temp[$node[$id]];
+            } elseif (!isset($rootID) && !isset($node[$parent])) {
                 $root = $temp[$node[$id]];
             } else {
-                $temp[$node[$id]]->moveTo($temp[$node[$parent]]);
+                if (isset($temp[$node[$parent]])) {
+                    $temp[$node[$id]]->moveTo($temp[$node[$parent]]);
+                }
             }
+        }
+        if (!isset($root)) {
+            throw new TreeException('No root node found');
         }
         return $root;
     }
@@ -39,7 +47,7 @@ class Node
         string $id = 'id',
         string $left = 'left',
         string $right = 'right'
-    )
+    ): Node
     {
         $nodes = array_values($nodes);
         usort($nodes, function ($a, $b) use ($left) {
@@ -48,6 +56,9 @@ class Node
         $temp = [];
         foreach ($nodes as $node) {
             $temp[$node[$left]] = new Node($node);
+        }
+        if (!isset($temp[1])) {
+            throw new TreeException('No root node found');
         }
         $root = $temp[1];
         foreach ($temp as $left => $node) {
@@ -60,7 +71,7 @@ class Node
         }
         return $root;
     }
-    public static function copy(Node $original)
+    public static function copy(Node $original): Node
     {
         $node = clone $original;
         $node->copied = $original;
@@ -99,7 +110,7 @@ class Node
      * Get the index of the node (among its siblings)
      * @return integer the index 
      */
-    public function getIndex()
+    public function getIndex(): int
     {
         if ($this->parent === null) {
             return 0;
@@ -112,7 +123,7 @@ class Node
      * @param  integer|null  $index the index to create at, defaults to `null`, meaning create as last child.
      * @return self
      */
-    public function addChild(Node $child, int $index = null)
+    public function addChild(Node $child, int $index = null): self
     {
         if ($index === null) {
             $index = count($this->children);
@@ -129,7 +140,7 @@ class Node
      * @param  \vakata\phptree\Node  $node the child to remove
      * @return self
      */
-    public function removeChild(Node $child)
+    public function removeChild(Node $child): self
     {
         $this->children = array_values(
             array_filter($this->children, function ($v) use ($child) { return $v !== $child; })
@@ -143,7 +154,7 @@ class Node
      * Remove all the children of the current node.
      * @return self
      */
-    public function removeChildren()
+    public function removeChildren(): self
     {
         foreach ($this->children as $child) {
             $child->parent = null;
@@ -157,7 +168,7 @@ class Node
      * @param  integer|null         $index  the new position to move to, defaults to `null`, meaning as the last child
      * @return self
      */
-    public function moveTo(Node $parent, $index = null)
+    public function moveTo(Node $parent, $index = null): self
     {
         $parent->addChild($this, $index);
         return $this;
@@ -167,7 +178,7 @@ class Node
      * @param  \vakata\phptree\Node  $reference the node to move next to
      * @return self
      */
-    public function moveAfter(Node $reference)
+    public function moveAfter(Node $reference): self
     {
         if ($reference->parent === null) {
             throw new TreeException('Invalid reference node');
@@ -180,7 +191,7 @@ class Node
      * @param  \vakata\phptree\Node  $reference the node to move next to
      * @return self
      */
-    public function moveBefore(Node $reference)
+    public function moveBefore(Node $reference): self
     {
         if ($reference->parent === null) {
             throw new TreeException('Invalid reference node');
@@ -194,7 +205,7 @@ class Node
      * @param  integer|null         $index  the new position to copy to, defaults to `null`, meaning as the last child
      * @return \vakata\phptree\Node  the copied node
      */
-    public function copyTo(Node $parent, $index = null)
+    public function copyTo(Node $parent, $index = null): Node
     {
         $copy = Node::copy($this);
         $copy->moveTo($parent, $index);
@@ -205,7 +216,7 @@ class Node
      * @param  \vakata\phptree\Node  $reference the reference node
      * @return \vakata\phptree\Node  the copied node
      */
-    public function copyAfter(Node $reference)
+    public function copyAfter(Node $reference): Node
     {
         $copy = Node::copy($this);
         $copy->moveAfter($reference);
@@ -216,7 +227,7 @@ class Node
      * @param  \vakata\phptree\Node  $reference the reference node
      * @return \vakata\phptree\Node  the copied node
      */
-    public function copyBefore(Node $reference)
+    public function copyBefore(Node $reference): Node
     {
         $copy = Node::copy($this);
         $copy->moveBefore($reference);
@@ -225,7 +236,7 @@ class Node
     /**
      * Remove the current node
      */
-    public function remove()
+    public function remove(): self
     {
         if ($this->parent !== null) {
             $this->parent->removeChild($this);
@@ -236,7 +247,7 @@ class Node
      * Does the node have a parent.
      * @return boolean     does the node have a parent
      */
-    public function hasParent()
+    public function hasParent(): bool
     {
         return $this->parent !== null;
     }
@@ -244,7 +255,7 @@ class Node
      * Does the node have children.
      * @return boolean     does the node have children
      */
-    public function hasChildren()
+    public function hasChildren(): bool
     {
         return count($this->children) > 0;
     }
@@ -252,23 +263,22 @@ class Node
      * Is the node a leaf node.
      * @return boolean is the node a leaf
      */
-    public function isLeaf()
+    public function isLeaf(): bool
     {
         return $this->hasChildren() === false;
     }
     /**
      * Get all children
-     * @return array                an array of `\vakata\phptree\Node` objects
+     * @return Node[]                an array of `\vakata\phptree\Node` objects
      */
-    public function getChildren()
+    public function getChildren(): array
     {
         return $this->children;
     }
     /**
-     * Get all parents
-     * @return array     an array of `\vakata\phptree\Node` objects
+     * Get the node parent
      */
-    public function getParent()
+    public function getParent(): Node
     {
         return $this->parent;
     }
@@ -277,7 +287,7 @@ class Node
      * @param  Node           $node the node to check against
      * @return boolean              is the node the parent
      */
-    public function isChildOf(Node $node)
+    public function isChildOf(Node $node): bool
     {
         return $this->parent === $node;
     }
@@ -286,15 +296,15 @@ class Node
      * @param  Node           $node the node to check against
      * @return boolean              is the node the parent
      */
-    public function isParentOf(Node $node)
+    public function isParentOf(Node $node): bool
     {
         return $node->parent === $this;
     }
     /**
      * Get all node's ancestors
-     * @return array     an array of `\vakata\phptree\Node` objects
+     * @return Node[     an array of `\vakata\phptree\Node` objects
      */
-    public function getAncestors()
+    public function getAncestors(): array
     {
         $parents = [];
         $reference = $this;
@@ -306,9 +316,9 @@ class Node
     }
     /**
      * Get all of the node's descendants
-     * @return array     an array of `\vakata\phptree\Node` objects
+     * @return Node[]     an array of `\vakata\phptree\Node` objects
      */
-    public function getDescendants()
+    public function getDescendants(): array
     {
         $descendants = $this->children;
         foreach ($this->children as $child) {
@@ -321,7 +331,7 @@ class Node
      * @param  Node           $node the node to check against
      * @return boolean              is the node a descendant
      */
-    public function isDescendantOf(Node $node)
+    public function isDescendantOf(Node $node): bool
     {
         $reference = $this;
         while ($reference->parent !== null) {
@@ -337,19 +347,19 @@ class Node
      * @param  Node           $node the node to check against
      * @return boolean              is the node the parent
      */
-    public function isAncestorOf(Node $node)
+    public function isAncestorOf(Node $node): bool
     {
         return $node->isDescendantOf($this);
     }
-    public function isCopy()
+    public function isCopy(): bool
     {
         return $this->copied !== null;
     }
-    public function getOriginal()
+    public function getOriginal(): Node
     {
         return $this->copied;
     }
-    public function export(int $left = 1, string $id = 'id')
+    public function export(int $left = 1, string $id = 'id'): array
     {
         $nodes = [];
         $running = $left + 1;

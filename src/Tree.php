@@ -16,37 +16,73 @@ class Tree
 
     /**
      * Create an instance
-     * @param  DBInterface $db     A database connection instance
+     * @param  DBInterface $db   A database connection instance
      * @param  string            $tb     the table name where the tree will be stored
-     * @param  integer           $root   the root of the tree (defaults to `1`)
      * @param  array             $fields a map containing the column names for: id, left, right, level, parent, position
+     * @param  integer|null      $root   the root of the tree (defaults to `null` for autodetect)
      */
-    public function __construct(DBInterface $db, $tb, array $fields = [])
+    public function __construct(DBInterface $db, $tb, array $fields = [], int $root = null)
     {
         $this->db = $db;
         $this->tb = $tb;
         $this->fields = $fields;
-        $this->load();
+        $this->load($root);
     }
-    public function load()
+    public function load(int $root = null): void
     {
-        $dat = array_map(
-            function ($v) {
-                foreach ($this->fields as $kk => $vv) {
-                    $v[$vv] = ($kk == 'parent' && $v[$vv] == null) ?
-                        null :
-                        (in_array($kk, ['id','left','right','level','parent','position']) ? (int)$v[$vv] : $v[$vv]); 
+        $lft = null;
+        $rgt = null;
+        $lvl = null;
+        $dat = null;
+        if (isset($root)) {
+            $temp = $this->db->one("SELECT * FROM {$this->tb} WHERE " . $this->fields['id'] . " = ?", (int)$root);
+            if (!$temp) {
+                throw new TreeException('Specified root node not found');
+            }
+            if (isset($this->fields['level'])) {
+                $lvl = (int)$temp[$this->fields['level']];
+            }
+            if (isset($this->fields['left']) && isset($this->fields['right'])) {
+                $lft = (int)$temp[$this->fields['left']];
+                $rgt = (int)$temp[$this->fields['right']];
+                $dat = $this->db->all(
+                    "SELECT * FROM {$this->tb} WHERE " . $this->fields['left'] . " >= ? AND " . $this->fields['right'] . " <= ?",
+                    [ $lft, $rgt ]
+                );
+            }
+        }
+        if (!isset($dat)) {
+            $dat = $this->db->all("SELECT * FROM {$this->tb}");
+        }
+        foreach ($dat as $k => $v) {
+            foreach ($this->fields as $kk => $vv) {
+                if ($kk == 'parent' && $v[$vv] == null) {
+                    $v[$vv] = null;
+                } elseif ($kk == 'parent' && isset($root) && (int)$v[$this->fields['id']] === $root) {
+                    $v[$vv] = null;
+                } elseif ($kk == 'position' && isset($root) && (int)$v[$this->fields['id']] === $root) {
+                    $v[$vv] = 0;
+                } elseif ($kk == 'left' && isset($lft)) {
+                    $v[$vv] = (int)$v[$vv] - ($lft - 1);
+                } elseif ($kk == 'right' && isset($lft)) {
+                    $v[$vv] = (int)$v[$vv] - ($lft - 1);
+                } elseif ($kk == 'level' && isset($lvl)) {
+                    $v[$vv] = (int)$v[$vv] - $lvl;
+                } else {
+                    $v[$vv] = in_array($kk, ['id','left','right','level','parent','position']) ?
+                        (int)$v[$vv] :
+                        $v[$vv];
                 }
-                return $v;
-            },
-            $this->db->all("SELECT * FROM {$this->tb}")
-        ); 
+            }
+            $dat[$k] = $v;
+        }
         if (isset($this->fields['id']) && isset($this->fields['parent'])) {
             $this->root = Node::fromAdjacencyArray(
                 $dat,
                 $this->fields['id'],
                 $this->fields['parent'],
-                $this->fields['position'] ?? null
+                $this->fields['position'] ?? null,
+                $root
             );
         } else {
             $this->root = Node::fromNestedSetArray(
@@ -61,16 +97,11 @@ class Tree
      * Get the root node
      * @return \\vakata\phptree\Node  the root node object
      */
-    public function getRoot()
+    public function getRoot(): Node
     {
         return $this->root;
     }
-    /**
-     * Get a node by its ID - used internally
-     * @param  int $id the node id
-     * @return \\vakata\phptree\Node     the node object
-     */
-    public function getNode(int $id)
+    public function getNode(int $id): ?Node
     {
         $field = $this->fields['id'];
         if ($this->root->{$field} === $id) {
@@ -81,7 +112,7 @@ class Tree
             function ($v) use ($field, $id) { return $v->{$field} === $id; }
         ))[0] ?? null;
     }
-    public function save()
+    public function save(): array
     {
         $cur = [];
         $new = [];
