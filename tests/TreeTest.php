@@ -17,7 +17,7 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 				`lft` int(10) unsigned NOT NULL,
 				`rgt` int(10) unsigned NOT NULL,
 				`lvl` int(10) unsigned NOT NULL,
-				`pid` int(10) unsigned NOT NULL,
+				`pid` int(10) unsigned NULL,
 				`pos` int(10) unsigned NOT NULL,
 				PRIMARY KEY (`id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
