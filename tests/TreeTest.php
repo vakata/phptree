@@ -25,7 +25,7 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 		self::$db->query("INSERT INTO struct VALUES (1, 1, 2, 0, 0, 0)");
 	}
 	public static function tearDownAfterClass() {
-		self::$db->query("DROP TABLE struct");
+		//self::$db->query("DROP TABLE struct");
 	}
 	protected function setUp() {
 		// self::$db->query("TRUNCATE TABLE test;");
@@ -191,10 +191,10 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 	public function analyze()
 	{
 		$report = [];
-		if ((int)self::$db->one("SELECT COUNT(id) AS res FROM struct WHERE pid = 0") !== 1) {
+		if ((int)self::$db->one("SELECT COUNT(id) AS res FROM struct WHERE pid = 0 OR pid IS NULL") !== 1) {
 			$report[] = "No or more than one root node.";
 		}
-		if ((int)self::$db->one("SELECT lft AS res FROM struct WHERE pid = 0") !== 1) {
+		if ((int)self::$db->one("SELECT lft AS res FROM struct WHERE pid = 0 OR pid IS NULL") !== 1) {
 			$report[] = "Root node's left index is not 1.";
 		}
 		if ((int)self::$db->one("
@@ -249,11 +249,12 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 					id AS res
 				FROM struct s
 				WHERE
+					pid IS NOT NULL AND
 					pos >= (
 						SELECT
 							COUNT(id)
 						FROM struct
-						WHERE pid = s.pid
+						WHERE pid = s.pid AND pid IS NOT NULL
 					)
 				LIMIT 1") ||
 			(int)self::$db->one("
@@ -263,6 +264,7 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 				WHERE
 					s1.id != s2.id AND
 					s1.pid = s2.pid AND
+					s1.pid IS NOT NULL AND s2.pid IS NOT NULL AND
 					s1.pos = s2.pos
 				LIMIT 1")
 		) {
