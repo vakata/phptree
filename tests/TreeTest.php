@@ -35,7 +35,11 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 	}
 
 	public function testConstruct() {
-		self::$tree = new \vakata\phptree\Tree(self::$db, 'struct', ['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl', 'left' => 'lft', 'right' => 'rgt']);
+		self::$tree = \vakata\phptree\Tree::fromDatabase(
+			self::$db,
+			'struct',
+			['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl', 'left' => 'lft', 'right' => 'rgt']
+		);
 	}
 	/**
 	 * @depends testConstruct
@@ -48,7 +52,7 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function testCreate() {
 		self::$tree->getRoot()->addChild(new Node());
-		self::$tree->save();
+		self::$tree->toDatabase(self::$db, 'struct', ['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl', 'left' => 'lft', 'right' => 'rgt']);
 		$this->assertEquals(2, self::$tree->getNode(2)->id);
 		$this->assertEquals(1, self::$tree->getNode(2)->pid);
 		$this->assertEquals(0, self::$tree->getNode(2)->pos);
@@ -62,7 +66,7 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function testCreateLeft() {
 		self::$tree->getRoot()->addChild(new Node(), 0);
-		self::$tree->save();
+		self::$tree->toDatabase(self::$db, 'struct', ['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl', 'left' => 'lft', 'right' => 'rgt']);
 		$this->assertEquals(2, count(self::$tree->getRoot()->getChildren()));
 		$this->assertEquals(0, count(self::$tree->getNode(3)->getChildren()));
 		$this->assertEquals([], $this->analyze());
@@ -70,9 +74,17 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 	/**
 	 * @depends testCreateLeft
 	 */
+	public function testSerialize() {
+		$temp = unserialize(serialize(self::$tree));
+		$this->assertEquals(2, count(self::$tree->getRoot()->getChildren()));
+		$this->assertEquals(1, self::$tree->getNode(2)->getParent()->id);
+	}
+	/**
+	 * @depends testCreateLeft
+	 */
 	public function testCreateRight() {
 		self::$tree->getRoot()->addChild(new Node(), 4);
-		self::$tree->save();
+		self::$tree->toDatabase(self::$db, 'struct', ['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl', 'left' => 'lft', 'right' => 'rgt']);
 		$this->assertEquals(3, count(self::$tree->getRoot()->getChildren()));
 		$this->assertEquals(1, self::$tree->getNode(4)->getParent()->id);
 		$this->assertEquals([], $this->analyze());
@@ -83,7 +95,7 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 	public function testCreateInner() {
 		self::$tree->getNode(2)->addChild(new Node());
 		self::$tree->getNode(3)->addChild(new Node());
-		self::$tree->save();
+		self::$tree->toDatabase(self::$db, 'struct', ['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl', 'left' => 'lft', 'right' => 'rgt']);
 		$this->assertEquals([], $this->analyze());
 	}
 	/**
@@ -96,7 +108,7 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 			$node->addChild($temp);
 			$node = $temp;
 		}
-		self::$tree->save();
+		self::$tree->toDatabase(self::$db, 'struct', ['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl', 'left' => 'lft', 'right' => 'rgt']);
 		$this->assertEquals(26, self::$tree->getNode(30)->lvl);
 		$this->assertEquals([], $this->analyze());
 	}
@@ -110,7 +122,7 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 			$temp = new Node();
 			$node->addChild($temp);
 		}
-		self::$tree->save();
+		self::$tree->toDatabase(self::$db, 'struct', ['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl', 'left' => 'lft', 'right' => 'rgt']);
 		$this->assertEquals(2, self::$tree->getNode(60)->lvl);
 		$this->assertEquals(30, count(self::$tree->getNode(4)->getChildren()));
 		$this->assertEquals(false, self::$tree->getNode(4)->isLeaf());
@@ -121,7 +133,7 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function testReorderRight() {
 		self::$tree->getNode(2)->moveTo(self::$tree->getNode(1), 10);
-		self::$tree->save();
+		self::$tree->toDatabase(self::$db, 'struct', ['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl', 'left' => 'lft', 'right' => 'rgt']);
 		$this->assertEquals([], $this->analyze());
 	}
 	/**
@@ -129,7 +141,7 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function testReorderLeft() {
 		self::$tree->getNode(2)->moveTo(self::$tree->getNode(1), 0);
-		self::$tree->save();
+		self::$tree->toDatabase(self::$db, 'struct', ['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl', 'left' => 'lft', 'right' => 'rgt']);
 		$this->assertEquals([], $this->analyze());
 	}
 	/**
@@ -137,7 +149,7 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function testMoveLeft() {
 		self::$tree->getNode(40)->moveTo(self::$tree->getNode(1), 0);
-		self::$tree->save();
+		self::$tree->toDatabase(self::$db, 'struct', ['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl', 'left' => 'lft', 'right' => 'rgt']);
 		$this->assertEquals([], $this->analyze());
 	}
 	/**
@@ -145,7 +157,7 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function testMoveRight() {
 		self::$tree->getNode(40)->moveTo(self::$tree->getNode(4), 0);
-		self::$tree->save();
+		self::$tree->toDatabase(self::$db, 'struct', ['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl', 'left' => 'lft', 'right' => 'rgt']);
 		$this->assertEquals([], $this->analyze());
 	}
 	/**
@@ -153,7 +165,7 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function testCopyLeft() {
 		self::$tree->getNode(20)->copyTo(self::$tree->getNode(1), 0);
-		self::$tree->save();
+		self::$tree->toDatabase(self::$db, 'struct', ['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl', 'left' => 'lft', 'right' => 'rgt']);
 		$this->assertEquals([], $this->analyze());
 	}
 	/**
@@ -161,30 +173,38 @@ class TreeTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function testCopyRight() {
 		self::$tree->getNode(40)->copyTo(self::$tree->getNode(4), 100);
-		self::$tree->save();
+		self::$tree->toDatabase(self::$db, 'struct', ['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl', 'left' => 'lft', 'right' => 'rgt']);
 		$this->assertEquals([], $this->analyze());
 	}
 	/**
 	 * @depends testCopyRight
 	 */
+	public function testNestedSetAdjacency() {
+		$tree1 = \vakata\phptree\Tree::fromDatabase(self::$db, 'struct', ['id' => 'id', 'left' => 'lft', 'right' => 'rgt']);
+		$tree2 = \vakata\phptree\Tree::fromDatabase(self::$db, 'struct', ['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl']);
+		$this->assertEquals(json_encode($tree1->toArray(false)), json_encode($tree2->toArray(false)));
+	}
+	/**
+	 * @depends testNestedSetAdjacency
+	 */
 	public function testRemove() {
 		self::$tree->getNode(40)->remove();
-		self::$tree->save();
+		self::$tree->toDatabase(self::$db, 'struct', ['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl', 'left' => 'lft', 'right' => 'rgt']);
 		$this->assertEquals([], $this->analyze());
 		self::$tree->getNode(30)->remove();
-		self::$tree->save();
+		self::$tree->toDatabase(self::$db, 'struct', ['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl', 'left' => 'lft', 'right' => 'rgt']);
 		$this->assertEquals([], $this->analyze());
 		self::$tree->getNode(2)->remove();
-		self::$tree->save();
+		self::$tree->toDatabase(self::$db, 'struct', ['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl', 'left' => 'lft', 'right' => 'rgt']);
 		$this->assertEquals([], $this->analyze());
 		self::$tree->getNode(3)->remove();
-		self::$tree->save();
+		self::$tree->toDatabase(self::$db, 'struct', ['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl', 'left' => 'lft', 'right' => 'rgt']);
 		$this->assertEquals([], $this->analyze());
 		self::$tree->getNode(4)->remove();
-		self::$tree->save();
+		self::$tree->toDatabase(self::$db, 'struct', ['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl', 'left' => 'lft', 'right' => 'rgt']);
 		$this->assertEquals([], $this->analyze());
 		self::$tree->getRoot()->getChildren()[0]->remove();
-		self::$tree->save();
+		self::$tree->toDatabase(self::$db, 'struct', ['id' => 'id', 'parent' => 'pid', 'position' => 'pos', 'level' => 'lvl', 'left' => 'lft', 'right' => 'rgt']);
 		$this->assertEquals([], $this->analyze());
 	}
 

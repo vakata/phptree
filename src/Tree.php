@@ -7,60 +7,52 @@ use vakata\database\DBInterface;
 /**
  * This class maintains a tree structure in a database using both the adjacency and nested set models.
  */
-class Tree
+class Tree implements \JsonSerializable
 {
-    protected $db;
-    protected $tb;
     protected $root;
-    protected $fields;
+    protected $id;
 
     /**
      * Create an instance
-     * @param  DBInterface $db   A database connection instance
-     * @param  string            $tb     the table name where the tree will be stored
-     * @param  array             $fields a map containing the column names for: id, left, right, level, parent, position
-     * @param  integer|null      $root   the root of the tree (defaults to `null` for autodetect)
+     * @param  DBInterface $db  A database connection instance
+     * @param  string           $tb     the table name where the tree will be stored
+     * @param  array            $fields a map containing the column names for: id, left, right, level, parent, position
+     * @param  integer|null     $root   the root of the tree (defaults to `null` for autodetect)
+     * @param  self
      */
-    public function __construct(DBInterface $db, $tb, array $fields = [], int $root = null)
-    {
-        $this->db = $db;
-        $this->tb = $tb;
-        $this->fields = $fields;
-        $this->load($root);
-    }
-    public function load(int $root = null): void
+    public static function fromDatabase(DBInterface $db, $tb, array $fields = [], int $root = null): self
     {
         $lft = null;
         $rgt = null;
         $lvl = null;
         $dat = null;
         if (isset($root)) {
-            $temp = $this->db->one("SELECT * FROM {$this->tb} WHERE " . $this->fields['id'] . " = ?", (int)$root);
+            $temp = $db->one("SELECT * FROM {$tb} WHERE " . $fields['id'] . " = ?", (int)$root);
             if (!$temp) {
                 throw new TreeException('Specified root node not found');
             }
-            if (isset($this->fields['level'])) {
-                $lvl = (int)$temp[$this->fields['level']];
+            if (isset($fields['level'])) {
+                $lvl = (int)$temp[$fields['level']];
             }
-            if (isset($this->fields['left']) && isset($this->fields['right'])) {
-                $lft = (int)$temp[$this->fields['left']];
-                $rgt = (int)$temp[$this->fields['right']];
-                $dat = $this->db->all(
-                    "SELECT * FROM {$this->tb} WHERE " . $this->fields['left'] . " >= ? AND " . $this->fields['right'] . " <= ?",
+            if (isset($fields['left']) && isset($fields['right'])) {
+                $lft = (int)$temp[$fields['left']];
+                $rgt = (int)$temp[$fields['right']];
+                $dat = $db->all(
+                    "SELECT * FROM {$tb} WHERE " . $fields['left'] . " >= ? AND " . $fields['right'] . " <= ?",
                     [ $lft, $rgt ]
                 );
             }
         }
         if (!isset($dat)) {
-            $dat = $this->db->all("SELECT * FROM {$this->tb}");
+            $dat = $db->all("SELECT * FROM {$tb}");
         }
         foreach ($dat as $k => $v) {
-            foreach ($this->fields as $kk => $vv) {
+            foreach ($fields as $kk => $vv) {
                 if ($kk == 'parent' && $v[$vv] == null) {
                     $v[$vv] = null;
-                } elseif ($kk == 'parent' && isset($root) && (int)$v[$this->fields['id']] === $root) {
+                } elseif ($kk == 'parent' && isset($root) && (int)$v[$fields['id']] === $root) {
                     $v[$vv] = null;
-                } elseif ($kk == 'position' && isset($root) && (int)$v[$this->fields['id']] === $root) {
+                } elseif ($kk == 'position' && isset($root) && (int)$v[$fields['id']] === $root) {
                     $v[$vv] = 0;
                 } elseif ($kk == 'left' && isset($lft)) {
                     $v[$vv] = (int)$v[$vv] - ($lft - 1);
@@ -76,22 +68,97 @@ class Tree
             }
             $dat[$k] = $v;
         }
-        if (isset($this->fields['id']) && isset($this->fields['parent'])) {
-            $this->root = Node::fromAdjacencyArray(
+        if (isset($fields['id']) && isset($fields['parent'])) {
+            return self::fromAdjacencyArray(
                 $dat,
-                $this->fields['id'],
-                $this->fields['parent'],
-                $this->fields['position'] ?? null,
+                $fields['id'],
+                $fields['parent'],
+                $fields['position'] ?? null,
                 $root
             );
-        } else {
-            $this->root = Node::fromNestedSetArray(
-                $dat,
-                $this->fields['id'],
-                $this->fields['left'],
-                $this->fields['right']
-            );
         }
+        return self::fromNestedSetArray(
+            $dat,
+            $fields['id'],
+            $fields['left'],
+            $fields['right']
+        );
+    }
+    public static function fromAdjacencyArray(
+        array $nodes = [],
+        string $id = 'id',
+        string $parent = 'parent',
+        string $position = null,
+        int $rootID = null
+    ): self
+    {
+        $nodes = array_values($nodes);
+        usort($nodes, function ($a, $b) use ($parent, $position) {
+            return $a[$parent] < $b[$parent] ? -1 : (
+                $a[$parent] > $b[$parent] ? 1 : ($position ? $a[$position] <=> $b[$position] : 0)
+            );
+        });
+        $temp = [];
+        $root = null;
+        foreach ($nodes as $node) {
+            $temp[$node[$id]] = new Node($node);
+        }
+        foreach ($nodes as $node) {
+            if (isset($rootID) && $node[$id] === $rootID) {
+                $root = $temp[$node[$id]];
+            } elseif (!isset($rootID) && !isset($node[$parent])) {
+                $root = $temp[$node[$id]];
+            } else {
+                if (isset($temp[$node[$parent]])) {
+                    $temp[$node[$id]]->moveTo($temp[$node[$parent]]);
+                }
+            }
+        }
+        if (!isset($root)) {
+            throw new TreeException('No root node found');
+        }
+        $tree = new self($id);
+        $tree->root = $root;
+        return $tree;
+    }
+    public static function fromNestedSetArray(
+        array $nodes = [],
+        string $id = 'id',
+        string $left = 'left',
+        string $right = 'right'
+    ): self
+    {
+        $nodes = array_values($nodes);
+        usort($nodes, function ($a, $b) use ($left) {
+            return $a[$left] <=> $b[$left];
+        });
+        $tempL = [];
+        $tempR = [];
+        foreach ($nodes as $node) {
+            $n = new Node($node);
+            $tempL[$node[$left]] = $n;
+            $tempR[$node[$right]] = $n;
+        }
+        if (!isset($tempL[1])) {
+            throw new TreeException('No root node found');
+        }
+        $root = $tempL[1];
+        foreach ($tempL as $left => $node) {
+            if (isset($tempL[$left - 1])) {
+                $node->moveTo($tempL[$left - 1]);
+            }
+            if (isset($tempR[$left - 1])) {
+                $node->moveAfter($tempR[$left - 1]);
+            }
+        }
+        $tree = new self($id);
+        $tree->root = $root;
+        return $tree;
+    }
+    public function __construct(string $id = 'id')
+    {
+        $this->id = $id;
+        $this->root = new Node();
     }
     /**
      * Get the root node
@@ -103,7 +170,7 @@ class Tree
     }
     public function getNode(int $id): ?Node
     {
-        $field = $this->fields['id'];
+        $field = $this->id;
         if ($this->root->{$field} === $id) {
             return $this->root;
         }
@@ -112,15 +179,25 @@ class Tree
             function ($v) use ($field, $id) { return $v->{$field} === $id; }
         ))[0] ?? null;
     }
-    public function save(): array
+    public function toArray(bool $includeNodes = true): array
+    {
+        $temp = $this->root->export(1, $this->id);
+        if (!$includeNodes) {
+            foreach ($temp as $k => $v) {
+                unset($temp[$k]['node']);
+            }
+        }
+        return $temp;
+    }
+    public function toDatabase(DBInterface $db, $tb, array $fields = []): array
     {
         $cur = [];
         $new = [];
         $mod = [];
         $rem = [];
-        foreach ($this->root->export(1, $this->fields['id']) as $node) {
+        foreach ($this->toArray() as $node) {
             $struct = [];
-            foreach ($this->fields as $k => $v) {
+            foreach ($fields as $k => $v) {
                 if (in_array($k, ['id','left','right','level','parent','position'])) {
                     $struct[$v] = $node['struct'][$k];
                     $node['node']->{$v} = $node['struct'][$k];
@@ -141,7 +218,7 @@ class Tree
                 ];
             }
         }
-        foreach ($this->db->get("SELECT * FROM {$this->tb}", null, $this->fields['id']) as $k => $v) {
+        foreach ($db->get("SELECT * FROM {$tb}", null, $fields['id']) as $k => $v) {
             $k = (int)$k;
             if (!isset($cur[$k])) {
                 $rem[] = $k;
@@ -158,15 +235,15 @@ class Tree
         if (count($cur)) {
             throw new TreeException('Items removed from tree');
         }
-        $trans = $this->db->begin();
+        $trans = $db->begin();
         if (count($rem)) {
-            $this->db->query("DELETE FROM {$this->tb} WHERE {$this->fields['id']} IN (??)", [$rem]);
+            $db->query("DELETE FROM {$tb} WHERE {$fields['id']} IN (??)", [$rem]);
         }
         foreach ($mod as $k => $v) {
             $sql = [];
             $par = [];
             foreach ($v as $kk => $vv) {
-                if ($kk === $this->fields['id']) {
+                if ($kk === $fields['id']) {
                     continue;
                 }
                 $sql[] = $kk . ' = ?';
@@ -174,25 +251,38 @@ class Tree
             }
             $sql = implode(', ', $sql);
             $par[] = $k;
-            $this->db->query("UPDATE {$this->tb} SET {$sql} WHERE {$this->fields['id']} = ?", $par);
+            $db->query("UPDATE {$tb} SET {$sql} WHERE {$fields['id']} = ?", $par);
         }
         $add = [];
         foreach ($new as $k => $v) {
-            $fields = [];
+            $f = [];
             foreach ($v['data'] as $kk => $vv) {
-                if ($kk === $this->fields['id']) {
+                if ($kk === $fields['id']) {
                     continue;
                 }
-                $fields[$kk] = $kk === $this->fields['parent'] ?
-                    $v['node']->getParent()->{$this->fields['id']} :
+                $f[$kk] = $kk === $fields['parent'] ?
+                    $v['node']->getParent()->{$fields['id']} :
                     $vv;
             }
-            $id = $this->db->table($this->tb)->insert($fields)[$this->fields['id']];
-            $v['node']->{$this->fields['id']} = (int)$id;
+            $id = $db->table($tb)->insert($f)[$fields['id']];
+            $v['node']->{$fields['id']} = (int)$id;
             $add[] = $id;
         }
-        $this->db->commit($trans);
-        //$this->load();
+        if (isset($fields['parent'])) {
+            foreach ($new as $k => $v) {
+                $v['node']->{$fields['parent']} = $v['node']->getParent()->id;
+            }
+        }
+        $db->commit($trans);
         return [ 'created' => $add, 'changed' => array_keys($mod), 'removed' => $rem ];
+    }
+
+    public function __sleep()
+    {
+        return [ 'root' ];
+    }
+    public function jsonSerialize()
+    {
+        return $this->toArray(false);
     }
 }
