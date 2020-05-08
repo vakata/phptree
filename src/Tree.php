@@ -187,7 +187,7 @@ class Tree implements \JsonSerializable
     }
     public function getNode(int $id): ?Node
     {
-        if (isset($this->map[$id])) {
+        if (!isset($this->map[$id])) {
             $this->remap();
         }
         return $this->map[$id] ?? null;
