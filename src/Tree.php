@@ -11,6 +11,7 @@ class Tree implements \JsonSerializable
 {
     protected $root;
     protected $id;
+    protected $map = [];
 
     /**
      * Create an instance
@@ -118,7 +119,7 @@ class Tree implements \JsonSerializable
             throw new TreeException('No root node found');
         }
         $tree = new self($id);
-        $tree->root = $root;
+        $tree->setRoot($root);
         return $tree;
     }
     public static function fromNestedSetArray(
@@ -152,7 +153,7 @@ class Tree implements \JsonSerializable
             }
         }
         $tree = new self($id);
-        $tree->root = $root;
+        $tree->setRoot($root);
         return $tree;
     }
     public function __construct(string $id = 'id')
@@ -168,16 +169,28 @@ class Tree implements \JsonSerializable
     {
         return $this->root;
     }
+    public function setRoot(Node $root): self
+    {
+        $this->root = $root;
+        $this->remap();
+        return $this;
+    }
+    public function remap(): self
+    {
+        $this->map = [];
+        $field = $this->id;
+        $this->map[$this->root->{$field}] = $this->root;
+        foreach ($this->root->getDescendants() as $node) {
+            $this->map[$node->{$field}] = $node;
+        }
+        return $this;
+    }
     public function getNode(int $id): ?Node
     {
-        $field = $this->id;
-        if ($this->root->{$field} === $id) {
-            return $this->root;
+        if (isset($this->map[$id])) {
+            $this->remap();
         }
-        return array_values(array_filter(
-            $this->root->getDescendants(),
-            function ($v) use ($field, $id) { return $v->{$field} === $id; }
-        ))[0] ?? null;
+        return $this->map[$id] ?? null;
     }
     public function toArray(bool $includeNodes = true): array
     {
@@ -274,12 +287,17 @@ class Tree implements \JsonSerializable
             }
         }
         $db->commit($trans);
+        $this->remap();
         return [ 'created' => $add, 'changed' => array_keys($mod), 'removed' => $rem ];
     }
 
     public function __sleep()
     {
-        return [ 'root' ];
+        return [ 'id', 'root' ];
+    }
+    public function __wakeup()
+    {
+        $this->remap();
     }
     public function jsonSerialize()
     {

@@ -258,7 +258,9 @@ class Node
     {
         $descendants = $this->children;
         foreach ($this->children as $child) {
-            $descendants = array_merge($descendants, $child->getDescendants());
+            foreach ($child->getDescendants() as $descendant) {
+                $descendants[] = $descendant;
+            }
         }
         return $descendants;
     }
@@ -305,7 +307,7 @@ class Node
             $running = $nodes[count($nodes) - 1]['struct']['right'] + 1;
         }
         $nodes[] = [
-            'data' => $this->data, 
+            'data' => $this->data,
             'node' => $this,
             'struct' => [
                 'id'       => $this->{$id},
