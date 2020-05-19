@@ -214,7 +214,7 @@ class Node
     /**
      * Get the node parent
      */
-    public function getParent(): Node
+    public function getParent(): ?Node
     {
         return $this->parent;
     }
