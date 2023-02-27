@@ -205,7 +205,7 @@ class Node
     }
     /**
      * Get all children
-     * @return Node[]                an array of `\vakata\phptree\Node` objects
+     * @return array<Node>                an array of `\vakata\phptree\Node` objects
      */
     public function getChildren(): array
     {
@@ -238,7 +238,7 @@ class Node
     }
     /**
      * Get all node's ancestors
-     * @return Node[     an array of `\vakata\phptree\Node` objects
+     * @return array<Node>     an array of `\vakata\phptree\Node` objects
      */
     public function getAncestors(): array
     {
@@ -252,7 +252,7 @@ class Node
     }
     /**
      * Get all of the node's descendants
-     * @return Node[]     an array of `\vakata\phptree\Node` objects
+     * @return array<Node>     an array of `\vakata\phptree\Node` objects
      */
     public function getDescendants(): array
     {
