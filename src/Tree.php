@@ -248,7 +248,7 @@ class Tree implements \JsonSerializable
         if (count($cur)) {
             throw new TreeException('Items removed from tree');
         }
-        $trans = $db->begin();
+        $db->begin();
         if (count($rem)) {
             $db->query("DELETE FROM {$tb} WHERE {$fields['id']} IN (??)", [$rem]);
         }
@@ -286,7 +286,7 @@ class Tree implements \JsonSerializable
                 $v['node']->{$fields['parent']} = $v['node']->getParent()->id;
             }
         }
-        $db->commit($trans);
+        $db->commit();
         $this->remap();
         return [ 'created' => $add, 'changed' => array_keys($mod), 'removed' => $rem ];
     }
