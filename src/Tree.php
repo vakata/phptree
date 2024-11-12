@@ -90,15 +90,18 @@ class Tree implements \JsonSerializable
         string $id = 'id',
         string $parent = 'parent',
         string $position = null,
-        int $rootID = null
+        int $rootID = null,
+        bool $sort = true
     ): self
     {
         $nodes = array_values($nodes);
-        usort($nodes, function ($a, $b) use ($parent, $position) {
-            return $a[$parent] < $b[$parent] ? -1 : (
-                $a[$parent] > $b[$parent] ? 1 : ($position ? $a[$position] <=> $b[$position] : 0)
-            );
-        });
+        if ($sort) {
+            usort($nodes, function ($a, $b) use ($parent, $position) {
+                return $a[$parent] < $b[$parent] ? -1 : (
+                    $a[$parent] > $b[$parent] ? 1 : ($position ? $a[$position] <=> $b[$position] : 0)
+                );
+            });
+        }
         $temp = [];
         $root = null;
         foreach ($nodes as $node) {
@@ -185,9 +188,9 @@ class Tree implements \JsonSerializable
         }
         return $this;
     }
-    public function getNode(int $id): ?Node
+    public function getNode(int $id, bool $remap = true): ?Node
     {
-        if (!isset($this->map[$id])) {
+        if ($remap && !isset($this->map[$id])) {
             $this->remap();
         }
         return $this->map[$id] ?? null;
@@ -276,7 +279,7 @@ class Tree implements \JsonSerializable
                     continue;
                 }
                 $f[$kk] = $kk === $fields['parent'] ?
-                    $v['node']->getParent()->{$fields['id']} :
+                    $v['node']->getParent()?->{$fields['id']} :
                     $vv;
             }
             $id = $db->table($tb)->insert($f)[$fields['id']];
@@ -285,7 +288,7 @@ class Tree implements \JsonSerializable
         }
         if (isset($fields['parent'])) {
             foreach ($new as $k => $v) {
-                $v['node']->{$fields['parent']} = $v['node']->getParent()->id;
+                $v['node']->{$fields['parent']} = $v['node']->getParent()?->id;
             }
         }
         if ($transaction) {

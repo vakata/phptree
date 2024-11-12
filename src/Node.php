@@ -44,7 +44,7 @@ class Node
     }
     /**
      * Get the index of the node (among its siblings)
-     * @return integer the index 
+     * @return integer the index
      */
     public function getIndex(): int
     {
