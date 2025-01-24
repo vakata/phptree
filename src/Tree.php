@@ -27,8 +27,14 @@ class Tree implements \JsonSerializable
         $rgt = null;
         $lvl = null;
         $dat = null;
+        if (!count($fields)) {
+            throw new TreeException('No fields specified');
+        }
         if (isset($root)) {
-            $temp = $db->one("SELECT * FROM {$tb} WHERE " . $fields['id'] . " = ?", (int)$root);
+            $temp = $db->one(
+                "SELECT " . implode(', ', $fields) . " FROM {$tb} WHERE " . $fields['id'] . " = ?",
+                (int)$root
+            );
             if (!$temp) {
                 throw new TreeException('Specified root node not found');
             }
@@ -45,7 +51,7 @@ class Tree implements \JsonSerializable
             }
         }
         if (!isset($dat)) {
-            $dat = $db->all("SELECT * FROM {$tb}");
+            $dat = $db->all("SELECT " . implode(', ', $fields) . " FROM {$tb}");
         }
         foreach ($dat as $k => $v) {
             foreach ($fields as $kk => $vv) {
@@ -234,7 +240,7 @@ class Tree implements \JsonSerializable
                 ];
             }
         }
-        foreach ($db->get("SELECT * FROM {$tb}", null, $fields['id']) as $k => $v) {
+        foreach ($db->get("SELECT " . implode(', ', $fields) . " FROM {$tb}", null, $fields['id']) as $k => $v) {
             $k = (int)$k;
             if (!isset($cur[$k])) {
                 $rem[] = $k;
