@@ -28,7 +28,6 @@ class Node
     /**
      * Create an instance.
      * @param  array                $data   the node data (optional)
-     * @param  \vakata\phptree\Node  $parent the parent of the node
      */
     public function __construct(array $data = [])
     {
@@ -55,11 +54,11 @@ class Node
     }
     /**
      * Create a new child.
-     * @param  \vakata\phptree\Node  $node the child to add
+     * @param  \vakata\phptree\Node  $child the child to add
      * @param  integer|null  $index the index to create at, defaults to `null`, meaning create as last child.
      * @return self
      */
-    public function addChild(Node $child, int $index = null): self
+    public function addChild(Node $child, ?int $index = null): self
     {
         if ($index === null) {
             $index = count($this->children);
@@ -73,7 +72,7 @@ class Node
     }
     /**
      * Remove a child.
-     * @param  \vakata\phptree\Node  $node the child to remove
+     * @param  \vakata\phptree\Node  $child the child to remove
      * @return self
      */
     public function removeChild(Node $child): self

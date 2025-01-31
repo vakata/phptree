@@ -7,7 +7,7 @@ use vakata\database\DBInterface;
 /**
  * This class maintains a tree structure in a database using both the adjacency and nested set models.
  */
-class Tree implements \JsonSerializable
+class Tree implements \JSONSerializable
 {
     protected $root;
     protected $id;
@@ -19,9 +19,9 @@ class Tree implements \JsonSerializable
      * @param  string           $tb     the table name where the tree will be stored
      * @param  array            $fields a map containing the column names for: id, left, right, level, parent, position
      * @param  integer|null     $root   the root of the tree (defaults to `null` for autodetect)
-     * @param  self
+     * @return  self
      */
-    public static function fromDatabase(DBInterface $db, $tb, array $fields = [], int $root = null): self
+    public static function fromDatabase(DBInterface $db, $tb, array $fields = [], ?int $root = null): self
     {
         $lft = null;
         $rgt = null;
@@ -95,8 +95,8 @@ class Tree implements \JsonSerializable
         array $nodes = [],
         string $id = 'id',
         string $parent = 'parent',
-        string $position = null,
-        int $rootID = null,
+        ?string $position = null,
+        ?int $rootID = null,
         bool $sort = true
     ): self
     {
@@ -172,7 +172,7 @@ class Tree implements \JsonSerializable
     }
     /**
      * Get the root node
-     * @return \\vakata\phptree\Node  the root node object
+     * @return Node  the root node object
      */
     public function getRoot(): Node
     {
