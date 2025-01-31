@@ -2,12 +2,13 @@
 
 namespace vakata\phptree;
 
+use JsonSerializable;
 use vakata\database\DBInterface;
 
 /**
  * This class maintains a tree structure in a database using both the adjacency and nested set models.
  */
-class Tree implements \JSONSerializable
+class Tree implements JsonSerializable
 {
     protected $root;
     protected $id;
