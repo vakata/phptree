@@ -120,7 +120,7 @@ class Tree implements JsonSerializable
             } elseif (!isset($rootID) && !isset($node[$parent])) {
                 $root = $temp[$node[$id]];
             } else {
-                if (isset($temp[$node[$parent]])) {
+                if (isset($node[$parent]) && isset($temp[$node[$parent]])) {
                     $temp[$node[$id]]->moveTo($temp[$node[$parent]]);
                 }
             }
@@ -195,7 +195,7 @@ class Tree implements JsonSerializable
         }
         return $this;
     }
-    public function getNode(int $id, bool $remap = true): ?Node
+    public function getNode(mixed $id, bool $remap = true): ?Node
     {
         if ($remap && !isset($this->map[$id])) {
             $this->remap();
