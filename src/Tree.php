@@ -268,7 +268,7 @@ class Tree implements JsonSerializable
             $sql = [];
             $par = [];
             foreach ($v as $kk => $vv) {
-                if ($kk === $fields['id']) {
+                if ($kk === $fields['id'] || !in_array($kk, $fields)) {
                     continue;
                 }
                 $sql[] = $kk . ' = ?';
